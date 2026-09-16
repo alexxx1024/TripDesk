@@ -80,6 +80,13 @@
       transition: border-color 0.2s;
     }
 
+    .pin-display {
+      cursor: pointer;
+      caret-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
     .pin-box:focus {
       border-bottom-color: var(--primary-green);
     }
@@ -590,14 +597,16 @@
 <body data-page-node-id="QTzqrYt6xQ4ShvHQSk1LwT">
 
   <!-- 密码验证弹窗 -->
-  <div id="lock-screen" data-page-node-id="5sDenNMXbOwy2mBtAJYlnq">
+  <div id="lock-screen" data-page-node-id="5sDenNMXbOwy2mBtAJYlnq" onclick="focusHiddenPin()">
     <div class="lock-main-title" data-page-node-id="M6ykUsEklZkCnWa8UrGkL9">Malaysia-Singapore</div>
     <div class="pin-container" data-page-node-id="3BLmhVm1GtPxoiEEHKWNg9">
-      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 0)" data-page-node-id="6xdXzwjTeyX7lsI5aFCEfg">
-      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 1)" data-page-node-id="oio80fpuoVoLwh9WHFUprf">
-      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 2)" data-page-node-id="MxBrgRor4RLyoDittu6sEE">
-      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 3)" data-page-node-id="GvdVZ2muuuGT8GyCXyJN0g">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="6xdXzwjTeyX7lsI5aFCEfg">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="oio80fpuoVoLwh9WHFUprf">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="MxBrgRor4RLyoDittu6sEE">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="GvdVZ2muuuGT8GyCXyJN0g">
     </div>
+    <!-- 隐藏的真实输入框：数字键盘只弹出一次，驱动 4 格展示 -->
+    <input type="tel" id="pin-hidden-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="密码输入" style="position: fixed; left: -9999px; top: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; margin: 0;">
     <div id="lock-error" class="lock-error-msg" data-page-node-id="0cKAfzLvOjtQN3H8G5ZkKe">密码错误，请重试</div>
   </div>
 
@@ -1192,43 +1201,90 @@
     /* ---------- 通用 UI 逻辑 ---------- */
     const LOCK_WINDOW_MS = 8 * 60 * 60 * 1000; // 8小时免密窗口
 
-    // 页面加载时检查：8小时内验证过则免密直接进入
-    (function initLock() {
-      const lastVerified = localStorage.getItem('lock_verified_at');
-      if (lastVerified) {
-        const ts = parseInt(lastVerified, 10);
-        if (!isNaN(ts) && (Date.now() - ts) < LOCK_WINDOW_MS) {
-          document.getElementById('lock-screen').style.display = 'none';
-        }
-      }
-    })();
+    /* ---------- 密码锁：单隐藏输入框驱动 4 格展示 ---------- */
+    const PIN_LENGTH = 4;
+    const hiddenPinInput = () => document.getElementById('pin-hidden-input');
+    const pinDisplays = () => Array.from(document.querySelectorAll('.pin-display'));
 
-    function handlePin(el, index) {
-      document.getElementById('lock-error').style.visibility = 'hidden';
-      // 只处理本次输入的字符；用正则只保留数字，防止异常字符
-      el.value = el.value.replace(/[^0-9]/g, '');
-      if (el.value.length === 1 && index < 3) {
-        document.querySelectorAll('.pin-box')[index + 1].focus();
-      } else if (el.value.length === 0 && index > 0) {
-        // 退格时回到上一个输入框
-        document.querySelectorAll('.pin-box')[index - 1].focus();
+    // 把隐藏框当前值分发到 4 个展示格
+    function syncPinDisplay() {
+      const val = hiddenPinInput().value.replace(/[^0-9]/g, '').slice(0, PIN_LENGTH);
+      hiddenPinInput().value = val;
+      pinDisplays().forEach((box, i) => { box.value = val[i] || ''; });
+      return val;
+    }
+
+    // 校验密码；返回是否通过
+    function checkPin(val) {
+      if (val.length < PIN_LENGTH) return false;
+      const savedPass = localStorage.getItem('app_password') || '1234';
+      if (val === savedPass) {
+        // 记录本次验证时间，8小时内再次打开免密
+        localStorage.setItem('lock_verified_at', Date.now());
+        document.getElementById('lock-screen').style.display = 'none';
+        return true;
+      } else {
+        document.getElementById('lock-error').style.visibility = 'visible';
+        hiddenPinInput().value = '';
+        pinDisplays().forEach(b => b.value = '');
+        hiddenPinInput().focus();
+        return false;
       }
-      const boxes = document.querySelectorAll('.pin-box');
-      let pin = '';
-      boxes.forEach(b => pin += b.value);
-      if (pin.length === 4) {
-        const savedPass = localStorage.getItem('app_password') || '1234';
-        if (pin === savedPass) {
-          // 记录本次验证时间，8小时内再次打开免密
-          localStorage.setItem('lock_verified_at', Date.now());
-          document.getElementById('lock-screen').style.display = 'none';
-        } else {
-          document.getElementById('lock-error').style.visibility = 'visible';
-          boxes.forEach(b => b.value = '');
-          boxes[0].focus();
+    }
+
+    // 隐藏框输入事件：自动分发 + 满 4 位自动校验
+    function handlePinInput() {
+      document.getElementById('lock-error').style.visibility = 'hidden';
+      const val = syncPinDisplay();
+      if (val.length === PIN_LENGTH) {
+        checkPin(val);
+      }
+    }
+
+    // 隐藏框退格键：删除最后一个字符并回显
+    function handlePinKeydown(e) {
+      if (e.key === 'Backspace') {
+        const val = hiddenPinInput().value;
+        if (val.length > 0) {
+          hiddenPinInput().value = val.slice(0, -1);
+          syncPinDisplay();
         }
       }
     }
+
+    // 点击任意展示格：把焦点还给隐藏框（不重新弹键盘）
+    function focusHiddenPin() {
+      hiddenPinInput().focus();
+    }
+
+    // 显示锁屏时自动聚焦隐藏输入框，弹出数字键盘
+    function showLockScreen() {
+      document.getElementById('lock-screen').style.display = 'flex';
+      setTimeout(() => hiddenPinInput().focus(), 300);
+    }
+
+    // 页面加载时检查：8小时内验证过则免密直接进入，否则显示锁屏并自动聚焦数字键盘
+    (function initLock() {
+      const lastVerified = localStorage.getItem('lock_verified_at');
+      let skipLock = false;
+      if (lastVerified) {
+        const ts = parseInt(lastVerified, 10);
+        if (!isNaN(ts) && (Date.now() - ts) < LOCK_WINDOW_MS) {
+          skipLock = true;
+        }
+      }
+      if (skipLock) {
+        document.getElementById('lock-screen').style.display = 'none';
+      } else {
+        // 绑定隐藏输入框事件
+        hiddenPinInput().addEventListener('input', handlePinInput);
+        hiddenPinInput().addEventListener('keydown', handlePinKeydown);
+        document.querySelectorAll('.pin-display').forEach(box => {
+          box.addEventListener('click', focusHiddenPin);
+        });
+        showLockScreen();
+      }
+    })();
 
     function switchTab(tabKey, el) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
