@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>M-S Travel Guide</title>
+  <title>TripDesk</title>
   <style>
     /* --------------------------------------------------
        1. 全局变量与样式定义
@@ -543,11 +543,22 @@
     -------------------------------------------------- */
     .rate-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
       margin-bottom: 12px;
     }
-    .rate-card { background: var(--light-green); padding: 10px; border-radius: 10px; text-align: center; }
+    .rate-grid.single {
+      grid-template-columns: 1fr;
+    }
+    .rate-card { 
+      background: var(--light-green); 
+      padding: 10px; 
+      border-radius: 10px; 
+      text-align: center; 
+    }
+    .rate-card:last-child:nth-child(odd):not(:first-child) {
+      grid-column: span 2;
+    }
     .num-input { flex: 1; min-width: 0; width: 100%; height: 44px; border: 1px solid var(--border-color); border-radius: 10px; padding: 0 12px; font-size: 15px; outline: none; }
     .set-fixed-btn { width: min(33.333vw, 200px); flex-shrink: 0; white-space: nowrap; }
 
@@ -641,7 +652,7 @@
 
   <!-- Header -->
   <header>
-    <div class="header-logo">M-S</div>
+    <div class="header-logo">TripDesk</div>
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('PRE', this)">PRE</button>
       <button class="tab-btn" onclick="switchTab('LOG', this)">LOG</button>
@@ -738,27 +749,16 @@
       <span>汇率换算</span>
     </div>
     <div id="memo-calc" class="collapse-content memo-collapse-content open">
-      <div class="rate-grid">
-        <div class="rate-card">
-          <div style="font-size: 12px; color:#666;">🇲🇾 马币 (MYR)</div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);">1 MYR ≈ 1.65 CNY</div>
-        </div>
-        <div class="rate-card">
-          <div style="font-size: 12px; color:#666;">🇸🇬 新币 (SGD)</div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);">1 SGD ≈ 5.25 CNY</div>
-        </div>
-      </div>
+      <div class="rate-grid" id="currency-rate-grid"></div>
 
       <div style="font-size: 13px; font-weight: 700; color: var(--primary-green); margin-bottom: 8px;">极简换算器</div>
       <div style="display: flex; gap: 8px; margin-bottom: 8px;">
         <input type="number" id="calc-amount" class="num-input" placeholder="输入金额" value="100" oninput="convertCurrency()">
         <select id="calc-currency" class="set-fixed-btn" style="border-radius: 10px; border:1px solid var(--border-color); font-weight:700; height: 44px; padding: 0 8px;" onchange="convertCurrency()">
-          <option value="MYR">MYR</option>
-          <option value="SGD">SGD</option>
         </select>
       </div>
       <div style="text-align: right; font-size: 14px; font-weight:600;">
-        约合人民币: <b id="calc-result" style="color: var(--accent-orange); font-size: 18px;">165.0</b> 元
+        约合人民币: <b id="calc-result" style="color: var(--accent-orange); font-size: 18px;">0.0</b> 元
       </div>
     </div>
 
@@ -786,7 +786,6 @@
       </div>
     </div>
 
-    <!-- 简化版：行程计划修改面板放到最后 -->
     <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-plan-edit')">
       <span>修改行程</span>
     </div>
@@ -813,15 +812,20 @@
     let hotelList = [];
     let planData = [];
     let checklistData = [];
+    let currencyRates = [];
 
     const collapseState = {};
     const revealState = { transit: false, hotel: false };
 
     /* --------------------------------------------------
-       数据加载逻辑：优先 fetch data.json，失败降级到内嵌默认数据
+       数据加载逻辑：包含汇率降级数据 (1-4国家)
     -------------------------------------------------- */
 
     const fallbackData = {
+      currencyRates: [
+        { code: "MYR", name: "🇲🇾 马币", rate: 1.65 },
+        { code: "SGD", name: "🇸🇬 新币", rate: 5.25 }
+      ],
       transitList: [
         {
           id: "transit-1",
@@ -1132,6 +1136,9 @@
     function loadDataIntoApp(defaultData) {
       transitList = defaultData.transitList || [];
       hotelList = defaultData.hotelList || [];
+      currencyRates = (defaultData.currencyRates && defaultData.currencyRates.length > 0)
+        ? defaultData.currencyRates.slice(0, 4)
+        : fallbackData.currencyRates;
 
       const savedPlan = localStorage.getItem('user_custom_plan_data');
       planData = savedPlan ? JSON.parse(savedPlan) : (defaultData.planData || []);
@@ -1142,11 +1149,52 @@
       renderChecklist();
       renderLogPage();
       renderPlanPage();
+      renderCurrencyCalc();
       initPlanEditDropdown();
     }
 
     /* --------------------------------------------------
-       行程编辑（SET页面简化逻辑：修复切换下拉联动刷新）
+       动态汇率卡片与换算逻辑 (支持1-4国家)
+    -------------------------------------------------- */
+    function renderCurrencyCalc() {
+      const grid = document.getElementById('currency-rate-grid');
+      const select = document.getElementById('calc-currency');
+      if (!grid || !select) return;
+
+      if (currencyRates.length === 1) {
+        grid.classList.add('single');
+      } else {
+        grid.classList.remove('single');
+      }
+
+      grid.innerHTML = currencyRates.map(item => `
+        <div class="rate-card">
+          <div style="font-size: 12px; color:#666;">${item.name} (${item.code})</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);">1 ${item.code} ≈ ${item.rate} CNY</div>
+        </div>
+      `).join('');
+
+      select.innerHTML = currencyRates.map(item => `
+        <option value="${item.code}">${item.code}</option>
+      `).join('');
+
+      convertCurrency();
+    }
+
+    function convertCurrency() {
+      const amount = parseFloat(document.getElementById('calc-amount').value) || 0;
+      const select = document.getElementById('calc-currency');
+      if (!select) return;
+      
+      const code = select.value;
+      const target = currencyRates.find(c => c.code === code);
+      const rate = target ? target.rate : 1.0;
+
+      document.getElementById('calc-result').innerText = (amount * rate).toFixed(1);
+    }
+
+    /* --------------------------------------------------
+       行程编辑（SET页面简化逻辑）
     -------------------------------------------------- */
     function initPlanEditDropdown() {
       const select = document.getElementById('plan-edit-day-select');
@@ -1615,13 +1663,6 @@
       document.getElementById('checklist-edit-panel').style.display = 'none';
       document.getElementById('checklist-edit-btn').style.display = '';
       renderChecklist();
-    }
-
-    function convertCurrency() {
-      const amount = parseFloat(document.getElementById('calc-amount').value) || 0;
-      const currency = document.getElementById('calc-currency').value;
-      let rate = currency === 'SGD' ? 5.25 : 1.65;
-      document.getElementById('calc-result').innerText = (amount * rate).toFixed(1);
     }
 
     function updatePassword() {
