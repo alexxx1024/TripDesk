@@ -277,7 +277,6 @@
 
     .collapse-content.open { display: block; }
 
-    /* 两列网格：一行两个 checklist，节约空间 */
     #checklist-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -307,7 +306,6 @@
     }
     .checklist-item.checked label { text-decoration: line-through; color: #AAA; }
 
-    /* 编辑清单：删除按钮（x） */
     .checklist-del-btn {
       width: 28px;
       height: 28px;
@@ -616,6 +614,20 @@
       border: none;
       font-weight: 700;
     }
+    .plan-edit-row {
+      background: var(--pure-white);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+    }
+    .plan-edit-row label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-green);
+      display: block;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -728,15 +740,18 @@
       <span class="section-title-sub">/ Memo</span>
     </div>
 
-    <!-- 新增：飞书 / 外部数据源配置 -->
-    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-feishu')">
-      <span>数据同步（飞书表格 / API 链接）</span>
+    <!-- 新增：行程计划 UI 编辑区 -->
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-plan-edit')">
+      <span>行程计划修改（本地保存）</span>
     </div>
-    <div id="memo-feishu" class="collapse-content memo-collapse-content open">
-      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">填入 Agent 提供的飞书中转链接，网页将实时拉取该表格数据：</div>
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="feishu-api-input" class="num-input" placeholder="输入 API / 中转 URL（留空使用本地 data.json）">
-        <button class="set-fixed-btn" style="background: var(--primary-green); color:#fff; border:none; border-radius: 10px; font-weight: 700; height: 44px;" onclick="saveFeishuApiUrl()">保存并刷新</button>
+    <div id="memo-plan-edit" class="collapse-content memo-collapse-content open">
+      <div style="font-size: 13px; color: #666; margin-bottom: 10px;">选择需要修改的日期：</div>
+      <select id="plan-edit-day-select" class="num-input" style="margin-bottom: 12px;" onchange="renderPlanEditForm()">
+      </select>
+      <div id="plan-edit-form"></div>
+      <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: space-between;">
+        <button class="memo-btn" style="color: var(--red-error);" onclick="resetPlanData()">恢复默认行程</button>
+        <button class="memo-btn memo-btn-primary" style="width: 120px;" onclick="savePlanDataEdit()">保存修改</button>
       </div>
     </div>
 
@@ -794,9 +809,6 @@
   </div>
 
   <script>
-    /* --------------------------------------------------
-       全局数据变量定义（由 fetch 动态加载 populate）
-    -------------------------------------------------- */
     let transitList = [];
     let hotelList = [];
     let planData = [];
@@ -806,40 +818,98 @@
     const revealState = { transit: false, hotel: false };
 
     /* --------------------------------------------------
-       动态拉取 JSON 数据（自动优先读取 SET 设置里的 API）
+       数据加载逻辑：优先从 localStorage 提取修改后的 planData
     -------------------------------------------------- */
     async function initFetchData() {
-      const customUrl = localStorage.getItem('user_feishu_api_url');
-      const targetUrl = (customUrl && customUrl.trim()) ? customUrl.trim() : './data.json';
-
       try {
-        const res = await fetch(targetUrl);
+        const res = await fetch('./data.json');
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-        const data = await res.json();
+        const defaultData = await res.json();
 
-        transitList = data.transitList || [];
-        hotelList = data.hotelList || [];
-        planData = data.planData || [];
-        checklistData = data.checklistData || [];
+        transitList = defaultData.transitList || [];
+        hotelList = defaultData.hotelList || [];
+        
+        // 优先获取本地缓存的行程与清单，实现纯前端随时修改
+        const savedPlan = localStorage.getItem('user_custom_plan_data');
+        planData = savedPlan ? JSON.parse(savedPlan) : (defaultData.planData || []);
 
-        // 数据拉取成功后触发页面整体渲染
+        const savedChecklist = localStorage.getItem('user_custom_checklist');
+        checklistData = savedChecklist ? JSON.parse(savedChecklist) : (defaultData.checklistData || []);
+
         renderChecklist();
         renderLogPage();
         renderPlanPage();
+        initPlanEditDropdown();
       } catch (err) {
         console.error('加载行程数据失败:', err);
       }
     }
 
-    function saveFeishuApiUrl() {
-      const val = document.getElementById('feishu-api-input').value.trim();
-      if (val) {
-        localStorage.setItem('user_feishu_api_url', val);
-      } else {
-        localStorage.removeItem('user_feishu_api_url');
+    /* --------------------------------------------------
+       行程编辑（SET页面交互逻辑）
+    -------------------------------------------------- */
+    function initPlanEditDropdown() {
+      const select = document.getElementById('plan-edit-day-select');
+      if (!select) return;
+      select.innerHTML = planData.map((d, i) => `
+        <option value="${i}">${d.dateStr} - ${d.routeName}</option>
+      `).join('');
+      renderPlanEditForm();
+    }
+
+    function renderPlanEditForm() {
+      const select = document.getElementById('plan-edit-day-select');
+      const form = document.getElementById('plan-edit-form');
+      if (!select || !form) return;
+      
+      const idx = select.value;
+      const day = planData[idx];
+      if (!day) return;
+
+      let html = `
+        <div class="plan-edit-row">
+          <label>路线名称</label>
+          <input type="text" id="edit-route-name" class="num-input" value="${day.routeName.replace(/"/g, '&quot;')}">
+        </div>
+      `;
+
+      day.nodes.forEach((node, nIdx) => {
+        html += `
+          <div class="plan-edit-row">
+            <label>节点 ${nIdx + 1} 时间</label>
+            <input type="text" id="edit-node-time-${nIdx}" class="num-input" value="${node.time.replace(/"/g, '&quot;')}" style="margin-bottom:6px;">
+            <label>节点 ${nIdx + 1} 描述 (支持 [地点] 地图标注)</label>
+            <textarea id="edit-node-desc-${nIdx}" class="num-input" style="height:60px; padding-top:6px;">${node.desc}</textarea>
+          </div>
+        `;
+      });
+
+      form.innerHTML = html;
+    }
+
+    function savePlanDataEdit() {
+      const select = document.getElementById('plan-edit-day-select');
+      if (!select) return;
+      const idx = select.value;
+
+      planData[idx].routeName = document.getElementById('edit-route-name').value;
+      planData[idx].nodes.forEach((node, nIdx) => {
+        node.time = document.getElementById(`edit-node-time-${nIdx}`).value;
+        node.desc = document.getElementById(`edit-node-desc-${nIdx}`).value;
+      });
+
+      // 存入缓存
+      localStorage.setItem('user_custom_plan_data', JSON.stringify(planData));
+      renderPlanPage();
+      alert('行程修改成功！已保存在本地缓存中。');
+    }
+
+    function resetPlanData() {
+      if (confirm('确定恢复默认行程吗？本地修改将被重置。')) {
+        localStorage.removeItem('user_custom_plan_data');
+        initFetchData();
+        alert('已恢复默认行程！');
       }
-      alert('数据源配置已保存，正在重新同步数据！');
-      initFetchData();
     }
 
     /* ---------- LOG 页面卡片点击与跳转逻辑 ---------- */
@@ -999,7 +1069,6 @@
       }).join('');
     }
 
-    /* ---------- PLAN 页面 Google 地图关联 ---------- */
     function openGoogleMap(query) {
       const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
       window.open(url, '_blank');
@@ -1041,7 +1110,6 @@
       `).join('');
     }
 
-    /* ---------- 通用 UI 逻辑 ---------- */
     const LOCK_WINDOW_MS = 8 * 60 * 60 * 1000;
     const PIN_LENGTH = 4;
     const hiddenPinInput = () => document.getElementById('pin-hidden-input');
@@ -1228,6 +1296,7 @@
         if (val) newList.push(val);
       });
       checklistData = newList;
+      localStorage.setItem('user_custom_checklist', JSON.stringify(checklistData));
       document.getElementById('checklist-container').style.display = '';
       document.getElementById('checklist-edit-panel').style.display = 'none';
       document.getElementById('checklist-edit-btn').style.display = '';
@@ -1328,14 +1397,6 @@
     window.onload = function() {
       startTravelTimer();
       loadMemo();
-
-      // 回显已设置的 API URL
-      const savedApi = localStorage.getItem('user_feishu_api_url');
-      if (savedApi) {
-        document.getElementById('feishu-api-input').value = savedApi;
-      }
-
-      // 拉取 JSON 数据
       initFetchData();
     };
   </script>
