@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="3CF1soIHMuYzlb5qzFct7W">
+<head data-page-node-id="VEpOQYjiNUW4jC4XkH82Qt">
+  <meta charset="UTF-8" data-page-node-id="REEFsMDzdcKjHo8a7U1sNi">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" data-page-node-id="tfVm6Qu8biNeRyjrsQMqLB">
+  <title>M-S Travel Guide</title>
+  <style>
+    /* --------------------------------------------------
+       1. 全局变量与样式定义
+    -------------------------------------------------- */
+    :root {
+      --primary-green: #2D4F43;
+      --pure-white: #FFFFFF;
+      --accent-orange: #F08430;
+      --light-green: #EBF2EE;
+      --dark-text: #1C2120;
+      --gray-bg: #F5F7F6;
+      --sub-text: #666666;
+      --border-color: #E2E8E5;
+      --red-error: #E53935;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--gray-bg);
+      color: var(--dark-text);
+      padding-top: calc(60px + env(safe-area-inset-top));
+      padding-bottom: calc(30px + env(safe-area-inset-bottom));
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* --------------------------------------------------
+       2. 密码锁 Overlay
+    -------------------------------------------------- */
+    #lock-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--pure-white);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+
+    .lock-main-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary-green);
+      margin-bottom: 40px;
+      letter-spacing: -0.5px;
+    }
+
+    .pin-container {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .pin-box {
+      width: 48px;
+      height: 56px;
+      border: none;
+      border-bottom: 2px solid var(--border-color);
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--primary-green);
+      outline: none;
+      background: transparent;
+      transition: border-color 0.2s;
+    }
+
+    .pin-box:focus {
+      border-bottom-color: var(--primary-green);
+    }
+
+    .lock-error-msg {
+      font-size: 13px;
+      color: var(--red-error);
+      height: 18px;
+      visibility: hidden;
+    }
+
+    /* --------------------------------------------------
+       3. Header 样式
+    -------------------------------------------------- */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: calc(56px + env(safe-area-inset-top));
+      padding-top: env(safe-area-inset-top);
+      padding-left: 20px;
+      padding-right: 20px;
+      background-color: var(--gray-bg);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-logo {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--primary-green);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .tab-btn {
+      font-size: 14px;
+      font-weight: 600;
+      color: #717A77;
+      border: none;
+      background: none;
+      padding: 4px 0;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: var(--primary-green);
+      font-weight: 800;
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 3px;
+      background-color: var(--accent-orange);
+      border-radius: 2px;
+    }
+
+    /* --------------------------------------------------
+       4. 页面容器
+    -------------------------------------------------- */
+    .tab-content {
+      display: none;
+      padding: 12px 20px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section-title-box {
+      margin: 24px 0 12px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .section-title-main {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary-green);
+    }
+
+    .section-title-sub {
+      font-size: 15px;
+      font-weight: 500;
+      color: #717A77;
+    }
+
+    /* --------------------------------------------------
+       5. PRE 首页
+    -------------------------------------------------- */
+    .pre-country-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-orange);
+      margin-bottom: 2px;
+    }
+
+    .pre-main-title {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--primary-green);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .pre-date-range {
+      font-size: 15px;
+      font-weight: 400;
+      color: #555555;
+      margin-bottom: 18px;
+      display: flex;
+      gap: 20px;
+    }
+
+    .status-card {
+      background-color: var(--primary-green);
+      color: var(--pure-white);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .status-label {
+      font-size: 15px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+
+    .status-time {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .map-container {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .map-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .collapse-header {
+      background: var(--pure-white);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--dark-text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .collapse-content {
+      display: none;
+      background: var(--pure-white);
+      border-radius: 12px;
+      padding: 8px 16px;
+      margin-bottom: 16px;
+    }
+
+    .collapse-content.open { display: block; }
+
+    /* 两列网格：一行两个 checklist，节约空间 */
+    #checklist-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 14px;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      padding: 9px 0;
+      border-bottom: 1px dashed var(--border-color);
+    }
+    .checklist-item:last-child,
+    .checklist-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+    .checklist-item input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--primary-green);
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .checklist-item label {
+      font-size: 14px;
+      color: var(--dark-text);
+      min-width: 0;
+      word-break: break-all;
+    }
+    .checklist-item.checked label { text-decoration: line-through; color: #AAA; }
+
+    /* --------------------------------------------------
+       6. LOG 页面
+    -------------------------------------------------- */
+    .card-item {
+      background: var(--pure-white);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    .card-item:active {
+      transform: scale(0.99);
+    }
+
+    .card-top-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .orange-tag {
+      background-color: var(--accent-orange);
+      color: var(--pure-white);
+      font-size: 11px;
+      font-weight: 400;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .app-platform-text {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--accent-orange);
+    }
+
+    .card-date {
+      font-size: 13px;
+      font-weight: 400;
+      color: #555555;
+      margin-left: auto;
+    }
+
+    .card-route-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .card-route-title {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--dark-text);
+    }
+
+    .card-route-arrow {
+      color: var(--accent-orange);
+      margin: 0 4px;
+    }
+
+    .card-time-orange {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--accent-orange);
+    }
+
+    .card-sub-code {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary-green);
+      margin-bottom: 6px;
+    }
+
+    .card-desc-text {
+      font-size: 12px;
+      color: var(--sub-text);
+      line-height: 1.5;
+    }
+
+    .card-completed-bar {
+      background: var(--pure-white);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .completed-text-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #A0A5A3;
+    }
+
+    .completed-tag-status {
+      font-size: 14px;
+      font-weight: 600;
+      color: #B5BDBA;
+    }
+
+    /* --------------------------------------------------
+       7. PLAN 页面
+    -------------------------------------------------- */
+    .pill-scroll-container {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .pill-scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .date-pill {
+      background: #FFFFFF;
+      color: #333333;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .date-pill.active {
+      background: var(--accent-orange);
+      color: #FFFFFF;
+    }
+
+    .plan-dark-bar {
+      background-color: var(--primary-green);
+      color: var(--pure-white);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .plan-dark-bar-date {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .plan-dark-bar-day {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .plan-route-title-v3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--dark-text);
+      margin-bottom: 12px;
+      padding-left: 15px;
+    }
+
+    .plan-node-card-v3 {
+      background: var(--pure-white);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .plan-node-time-v3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-orange);
+      margin-bottom: 8px;
+    }
+
+    .plan-node-desc-v3 {
+      font-size: 15px;
+      color: #333333;
+      line-height: 1.8;
+      font-weight: 400;
+    }
+
+    /* 可点击地点标签 */
+    .map-location-link {
+      display: inline-block;
+      background-color: #EBF2EE;
+      color: var(--primary-green);
+      padding: 0px 6px;
+      margin: 2px 2px;
+      border-radius: 6px;
+      font-weight: 400;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.15s ease;
+    }
+
+    .map-location-link:active {
+      background-color: #DDE8E2;
+    }
+
+    /* --------------------------------------------------
+       8. SET / MEMO 页面
+    -------------------------------------------------- */
+    .rate-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .rate-card { background: var(--light-green); padding: 10px; border-radius: 10px; text-align: center; }
+    .num-input { flex: 1; min-width: 0; width: 100%; height: 44px; border: 1px solid var(--border-color); border-radius: 10px; padding: 0 12px; font-size: 15px; outline: none; }
+    .set-fixed-btn { width: min(33.333vw, 200px); flex-shrink: 0; white-space: nowrap; }
+
+    .memo-collapse-header {
+      margin-top: 12px;
+    }
+    .memo-collapse-header:first-of-type {
+      margin-top: 0;
+    }
+    .memo-collapse-header {
+      background-color: var(--primary-green);
+      color: var(--pure-white);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .memo-collapse-header span {
+      color: var(--pure-white);
+    }
+    .memo-collapse-content {
+      margin-bottom: 12px;
+    }
+    .memo-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--dark-text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 4px 0 8px 0;
+      min-height: 20px;
+      cursor: text;
+    }
+    .memo-text:empty::before {
+      content: '点击此处添加备忘内容...';
+      color: #AAA;
+    }
+    .memo-actions textarea {
+      width: 100%;
+      height: auto;
+      padding-top: 10px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+    .memo-btn {
+      flex: 1;
+      height: 40px;
+      background: var(--gray-bg);
+      color: var(--dark-text);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .memo-btn-primary {
+      background: var(--accent-orange);
+      color: var(--pure-white);
+      border: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body data-page-node-id="QTzqrYt6xQ4ShvHQSk1LwT">
+
+  <!-- 密码验证弹窗 -->
+  <div id="lock-screen" data-page-node-id="5sDenNMXbOwy2mBtAJYlnq">
+    <div class="lock-main-title" data-page-node-id="M6ykUsEklZkCnWa8UrGkL9">Malaysia-Singapore</div>
+    <div class="pin-container" data-page-node-id="3BLmhVm1GtPxoiEEHKWNg9">
+      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 0)" data-page-node-id="6xdXzwjTeyX7lsI5aFCEfg">
+      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 1)" data-page-node-id="oio80fpuoVoLwh9WHFUprf">
+      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 2)" data-page-node-id="MxBrgRor4RLyoDittu6sEE">
+      <input type="password" maxlength="1" class="pin-box" onkeyup="handlePin(this, 3)" data-page-node-id="GvdVZ2muuuGT8GyCXyJN0g">
+    </div>
+    <div id="lock-error" class="lock-error-msg" data-page-node-id="0cKAfzLvOjtQN3H8G5ZkKe">密码错误，请重试</div>
+  </div>
+
+  <!-- Header -->
+  <header data-page-node-id="c8AqmFHwBCeX7N8IucrA8O">
+    <div class="header-logo" data-page-node-id="Zo9Fcb6XMwZCdOhsnXXd4R">M-S</div>
+    <div class="nav-tabs" data-page-node-id="oaY7DxbZiiAINHtCHIny0n">
+      <button class="tab-btn active" onclick="switchTab('PRE', this)" data-page-node-id="SCKf5a7uaGSVGgAR751nCb">PRE</button>
+      <button class="tab-btn" onclick="switchTab('LOG', this)" data-page-node-id="dI9xTMHQsQyTGPWG0bc2Ce">LOG</button>
+      <button class="tab-btn" onclick="switchTab('PLAN', this)" data-page-node-id="LfEZtSzBMfTvFAXFAgmrfJ">PLAN</button>
+      <button class="tab-btn" onclick="switchTab('SET', this)" data-page-node-id="6IDPTWWG8VmkcZFBxwn6K1">SET</button>
+    </div>
+  </header>
+
+  <!-- ==================================================
+       1. PRE 首页
+  ================================================== -->
+  <div id="tab-PRE" class="tab-content active" data-page-node-id="OwoHsVo0oKS2krCHdiVgRS">
+    <div class="pre-country-title" data-page-node-id="cEURIND3UOKfTDEz55vWmP">马来西亚 - 新加坡</div>
+    <div class="pre-main-title" data-page-node-id="SiLdjVi82978CZVlwU5S0z">Malaysia/Singapore</div>
+    
+    <div class="pre-date-range" data-page-node-id="UxbumjerSlXDLYBs70dWJ9">
+      <span data-page-node-id="GQTIShkbQkjzX00banTtxi">9月24日 - 10月5日</span>
+      <span data-page-node-id="KX3Tm8UppZYjplDC42X6RG">12天</span>
+    </div>
+
+    <!-- 深色动态倒计时/状态卡片 -->
+    <div class="status-card" data-page-node-id="yfBXbQG1wHojn6Ri0pfQ2x">
+      <span id="status-label" class="status-label" data-page-node-id="1E1MZWr9UZED7tnwB4UCNW">离出发还有</span>
+      <span id="status-time" class="status-time" data-page-node-id="qpDNEGRRWaFzs7B6U9O1Tq">计算中...</span>
+    </div>
+
+    <div class="map-container" data-page-node-id="rBX7nUdEdDRfWy7XHKcTvB">
+      <img src="poster.png" alt="Travel Map Route" data-page-node-id="yLDDvEGhYYDr5H6oMkoFc2">
+    </div>
+
+    <div class="section-title-box" data-page-node-id="5SODaXlUHj9tMZa2DBv6Pd">
+      <span class="section-title-main" data-page-node-id="mSZ3qTRTckO0VqKeougsgT">行前</span>
+      <span class="section-title-sub" data-page-node-id="0Ut6ZBhVm1bLbEALLgpHxg">/ Preparation</span>
+    </div>
+
+    <div class="collapse-header" onclick="toggleCollapse()" data-page-node-id="OtZTgAIOJmKBdY0BONlT8D">
+      <span data-page-node-id="fYYfcOeh2t59ijt618V3BM">行前清单 Check List</span>
+      <span id="checklist-progress" style="font-size: 13px; color: var(--accent-orange);" data-page-node-id="vBWHZUkK5RRz6NQ6TZ11Pa"></span>
+    </div>
+    <div id="collapse-body" class="collapse-content" data-page-node-id="OcBRsR7BT0Uh8z0WoqmgV1">
+      <div id="checklist-container" data-page-node-id="Amqwr8f7maGVz8LSbEaQJA"></div>
+    </div>
+  </div>
+
+  <!-- ==================================================
+       2. LOG 页面（交通与住宿）
+  ================================================== -->
+  <div id="tab-LOG" class="tab-content" data-page-node-id="ALABnYC7gPMgextzCPxNJ7">
+    
+    <div class="section-title-box" data-page-node-id="DSrlrIclTKES0ImdXI9Ng4">
+      <span class="section-title-main" data-page-node-id="Hir5ADEg45SofEDgQTXfto">大交通</span>
+      <span class="section-title-sub" data-page-node-id="MtcyWXbZzwd9JmHK4xblHQ">/ Transit</span>
+    </div>
+    <div id="log-transit-container" data-page-node-id="qwxF1lcj121C9w4fzrV3Sl"></div>
+
+    <div class="section-title-box" data-page-node-id="TyqFSgJnMDMNgPulY6ZPia">
+      <span class="section-title-main" data-page-node-id="dBXEPlxvjQFa9vayPBbXXB">住宿</span>
+      <span class="section-title-sub" data-page-node-id="JEhjLReDAkXZ7OjKHFHDiA">/ Accommodation</span>
+    </div>
+    <div id="log-hotel-container" data-page-node-id="DGyHq9Jnt7FI5KIQnE4SVC"></div>
+
+  </div>
+
+  <!-- ==================================================
+       3. PLAN 页面
+  ================================================== -->
+  <div id="tab-PLAN" class="tab-content" data-page-node-id="h1J3UEbPCtgkcjgB7VgQZC">
+    <div id="pill-nav-container" class="pill-scroll-container" data-page-node-id="nvbEe1eEEJKEsA139pUeQN"></div>
+    <div id="plan-list-container" data-page-node-id="DR0aUWA8j71lQDBUdwxBHI"></div>
+  </div>
+
+  <!-- ==================================================
+       4. SET / MEMO 页面
+  ================================================== -->
+  <div id="tab-SET" class="tab-content" data-page-node-id="N03uR1GFqQVBq442A4B7dk">
+    <div class="section-title-box" data-page-node-id="aeCo6dapCR7sxfC2LztNos">
+      <span class="section-title-main" data-page-node-id="LHFZqFVQ7h5deo7q2YLiU9">杂项</span>
+      <span class="section-title-sub" data-page-node-id="PFHN1NGLMrGutVw2sS4Enf">/ Memo</span>
+    </div>
+
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-calc')" data-page-node-id="EBX74tA1lvCAlBRqe6XWLE">
+      <span data-page-node-id="4pi50Sj6tXmESULckgyv6A">汇率换算</span>
+    </div>
+    <div id="memo-calc" class="collapse-content memo-collapse-content open" data-page-node-id="SynnKCC0UM2VobxBpmiNt9">
+      <div class="rate-grid" data-page-node-id="I0NcxBRPt5wUzQW5lRGnK3">
+        <div class="rate-card" data-page-node-id="wW2zYgy1yFkThi1eEjICuL">
+          <div style="font-size: 12px; color:#666;" data-page-node-id="DDdyH7RNxOnecXkPUyYQeD">🇲🇾 马币 (MYR)</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);" data-page-node-id="f9oj6eUEmUaTQSnsPCdWUI">1 MYR ≈ 1.65 CNY</div>
+        </div>
+        <div class="rate-card" data-page-node-id="iL0DHHFvVxBKrN18ZNHjgz">
+          <div style="font-size: 12px; color:#666;" data-page-node-id="JTOU155H3jwIBcuu5SaUES">🇸🇬 新币 (SGD)</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);" data-page-node-id="S2BYPg3Yii0j7x0QyzuWnz">1 SGD ≈ 5.25 CNY</div>
+        </div>
+      </div>
+
+      <div style="font-size: 13px; font-weight: 700; color: var(--primary-green); margin-bottom: 8px;" data-page-node-id="LLDBB4aVWx5Yj9iyeOAoQ4">极简换算器</div>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;" data-page-node-id="69okOGjOQFgDG233PfINT8">
+        <input type="number" id="calc-amount" class="num-input" placeholder="输入金额" value="100" oninput="convertCurrency()" data-page-node-id="JW6gKCV2Wbd1XgOueFyZyk">
+        <select id="calc-currency" class="set-fixed-btn" style="border-radius: 10px; border:1px solid var(--border-color); font-weight:700; height: 44px; padding: 0 8px;" onchange="convertCurrency()" data-page-node-id="LdHriAZv0gj43loJzE7uZH">
+          <option value="MYR" data-page-node-id="OsTZPnxQLGK7x4Dqy9wmbW">MYR</option>
+          <option value="SGD" data-page-node-id="wwPIXGUTdd2P2Rgc2rso04">SGD</option>
+        </select>
+      </div>
+      <div style="text-align: right; font-size: 14px; font-weight:600;" data-page-node-id="HCn4h4dFoXcjItJvVnYk00">
+        约合人民币: <b id="calc-result" style="color: var(--accent-orange); font-size: 18px;" data-page-node-id="ZYsQBPq6RBAkgHP1pO0AyK">165.0</b> 元
+      </div>
+    </div>
+
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-note')" data-page-node-id="WEXgIlMBKwWsSt5AEYlUCA">
+      <span data-page-node-id="tAQSEiZ8ojHWHO9Zkxiypg">备忘录</span>
+    </div>
+    <div id="memo-note" class="collapse-content memo-collapse-content open" data-page-node-id="4N0U0i7l82ujOGiDKSBiD0">
+      <div class="memo-text" id="memo-text" onclick="editMemo()" data-page-node-id="TeiYmBKzbNXICAWJvMrMLp"></div>
+      <div class="memo-actions" id="memo-actions" style="display: none;" data-page-node-id="YEXWa9bEdJJyXuCLMoy63p">
+        <textarea id="memo-input" class="num-input" rows="6" placeholder="写下你的备忘内容..."></textarea>
+        <div style="display: flex; gap: 8px; margin-top: 8px;" data-page-node-id="weD8O5FojLXqS54JUwCLDj">
+          <button class="memo-btn memo-btn-primary" onclick="saveMemo()" data-page-node-id="JQ6HnE0XaTA1ylCrBG4miD">保存</button>
+          <button class="memo-btn" onclick="cancelMemoEdit()" data-page-node-id="D0v6Z42mXvKpZlxcAIi6vX">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-pass')" data-page-node-id="2Ftyu4BwVUKF6SipkkxlYJ">
+      <span data-page-node-id="SPDzJX9e3pUA04vkupkDCM">修改密码</span>
+    </div>
+    <div id="memo-pass" class="collapse-content memo-collapse-content open" data-page-node-id="iVSqpet5H4NByXkuoJnIKL">
+      <div style="display: flex; gap: 8px;" data-page-node-id="0RiCDOlsAyQrBFAhpQLwjZ">
+        <input type="password" id="new-pass-input" maxlength="4" class="num-input" placeholder="4位新密码" data-page-node-id="xyXANYWCCotAD0ncfZCggZ">
+        <button class="set-fixed-btn" style="background: var(--accent-orange); color:#fff; border:none; border-radius: 10px; font-weight: 700; height: 44px;" onclick="updatePassword()" data-page-node-id="45rrmiJozCPqWYmGBFwc4f">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* --------------------------------------------------
+       LOG 页面数据配置
+    -------------------------------------------------- */
+    const transitList = [
+      {
+        id: "transit-1",
+        endDateStr: "2026-09-24T14:20:00",
+        tag: "机票",
+        platform: "携程",
+        date: "09/24 周四",
+        title: "杭州 ➔ 吉隆坡",
+        collapsedTitle: "杭州 ➔ 吉隆坡",
+        time: "08:50 - 14:20",
+        subCode: "HGH T4 - KUL T1",
+        desc1: "东方航空 MU5095 | 5h30m",
+        desc2: "经济舱 空客320(中) | 含早餐",
+        scheme: "ctrip://wireless/InlandFlight",
+        webUrl: "https://m.ctrip.com/html5/flight/swift/index"
+      },
+      {
+        id: "transit-2",
+        endDateStr: "2026-09-27T15:15:00",
+        tag: "火车",
+        platform: "KTM",
+        date: "09/27 周日",
+        title: "吉隆坡 ➔ 槟城",
+        collapsedTitle: "吉隆坡 ➔ 槟城",
+        time: "11:40 - 15:15",
+        subCode: "KL Sentral - Butterworth",
+        desc1: "车次 EX9108 | 座位 A/A2",
+        scheme: "ktm://",
+        webUrl: "https://online.ktmb.com.my/"
+      },
+      {
+        id: "transit-3",
+        endDateStr: "2026-09-30T10:30:00",
+        tag: "机票",
+        platform: "飞猪",
+        date: "09/30 周三",
+        title: "槟城 ➔ 兰卡威",
+        collapsedTitle: "槟城 ➔ 兰卡威",
+        time: "09:55 - 10:30",
+        subCode: "PEN Terminal D - LGK MAIN",
+        desc1: "亚航 AK6241 | 约 35 分钟",
+        scheme: "fliggy://",
+        webUrl: "https://www.fliggy.com/"
+      },
+      {
+        id: "transit-4",
+        endDateStr: "2026-10-02T13:40:00",
+        tag: "机票",
+        platform: "去哪儿",
+        date: "10/02 周五",
+        title: "兰卡威 ➔ 新加坡",
+        collapsedTitle: "兰卡威 ➔ 新加坡",
+        time: "12:05 - 13:40",
+        subCode: "LGK Airport - SIN Terminal 4",
+        desc1: "亚航 AK728 | 预订编码: F92Q4F",
+        scheme: "qunarphone://",
+        webUrl: "https://m.qunar.com/"
+      },
+      {
+        id: "transit-5",
+        endDateStr: "2026-10-05T02:30:00",
+        tag: "机票",
+        platform: "携程",
+        date: "10/05 周一 (返程)",
+        title: "新加坡 ➔ 杭州",
+        collapsedTitle: "新加坡 ➔ 杭州",
+        time: "02:30 - 11:00",
+        subCode: "SIN T3 - HGH T3",
+        desc1: "东方航空 MU9648 / MU5883 中转昆明",
+        scheme: "ctrip://wireless/InlandFlight",
+        webUrl: "https://m.ctrip.com/html5/flight/swift/index"
+      }
+    ];
+
+    const hotelList = [
+      {
+        id: "hotel-1",
+        endDateStr: "2026-09-25T12:00:00",
+        tag: "马六甲",
+        platform: "Booking",
+        date: "9/24",
+        title: "霍尔马克休闲酒店",
+        collapsedTitle: "马六甲 1晚",
+        nights: "1晚",
+        subCode: "Hallmark Leisure Hotel",
+        desc: "68, Jalan Portugis, Hotel Hall Mark, Off, Jalan Kubu, Kampung Satu, 75200 Melaka, Malaysia",
+        scheme: "booking://",
+        webUrl: "https://www.booking.com/"
+      },
+      {
+        id: "hotel-2",
+        endDateStr: "2026-09-27T12:00:00",
+        tag: "吉隆坡",
+        platform: "Booking",
+        date: "9/25, 9/26",
+        title: "美苏伊武吉免登酒店",
+        collapsedTitle: "吉隆坡 2晚",
+        nights: "2晚",
+        subCode: "The Mesui Hotel Bukit Bintang",
+        desc: "9, Jln Mesui, Bukit Bintang, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+        scheme: "booking://",
+        webUrl: "https://www.booking.com/"
+      },
+      {
+        id: "hotel-3",
+        endDateStr: "2026-09-30T12:00:00",
+        tag: "槟城",
+        platform: "Booking",
+        date: "9/27, 9/28, 9/29",
+        title: "麦蒙庄园传统酒店",
+        collapsedTitle: "槟城 3晚",
+        nights: "3晚",
+        subCode: "Melmond Maison Heritage Hotel",
+        desc: "59, Lebuh Melayu, George Town, 10100 George Town, Pulau Pinang, Malaysia",
+        scheme: "booking://",
+        webUrl: "https://www.booking.com/"
+      },
+      {
+        id: "hotel-4",
+        endDateStr: "2026-10-02T12:00:00",
+        tag: "兰卡威",
+        platform: "Airbnb",
+        date: "9/30, 10/1",
+        title: "兰卡威客用小屋",
+        collapsedTitle: "兰卡威 2晚",
+        nights: "2晚",
+        subCode: "Liv Bumi Oasis (Guest House)",
+        desc: "No 1, Lot 1565, Lorong Surau No 1, Lot 1565, 07000 Langkawi, Kedah, Malaysia",
+        scheme: "booking://",
+        webUrl: "https://www.booking.com/"
+      },
+      {
+        id: "hotel-5",
+        endDateStr: "2026-10-04T12:00:00",
+        tag: "新加坡",
+        platform: "Booking",
+        date: "10/2, 10/3",
+        title: "KINN Habitat",
+        collapsedTitle: "新加坡 2晚",
+        nights: "2晚",
+        subCode: "KINN Habitat",
+        desc: "5 Hongkong St, Singapore 059648",
+        scheme: "airbnb://",
+        webUrl: "https://www.airbnb.com/"
+      }
+    ];
+
+    /* --------------------------------------------------
+       PLAN 行程数据配置
+    -------------------------------------------------- */
+    const planData = [
+      {
+        dayId: "day-0924",
+        dateMatch: "09-24",
+        pillText: "09/24 D1",
+        dateStr: "09/24 周四",
+        dayTag: "Day 1",
+        routeName: "杭州 ➔ 吉隆坡 ➔ 马六甲",
+        nodes: [
+          { time: "上午", desc: "4:30 起床 ➔ 5:00 出发 ➔ 5:40 到公司打车 ➔ 6:30 到机场 ➔ 飞猪在线选座（去兰卡威的航班）➔ 08:50 - 14:20 MU5095 飞往吉隆坡" },
+          { time: "下午", desc: "14:20 落地 ➔ 出关后买大巴票（现场 / [redbus] / [easybook]，可提前查看时间表）➔ 15:30/16:00 - 18:00 大巴到马六甲 (2h+)" },
+          { time: "晚上", desc: "入住 吃饭 ➔ [马六甲海峡清真寺] 晚霞（来不及就第二天一早去）➔ [马来西亚十三州咖啡] 8点前 / [The Daily Fix Cafe] 8:30前 ➔ 夜游 [马六甲河] ➔ 寻找 Golden 三轮 ➔ WhatsApp 搞好" }
+        ]
+      },
+      {
+        dayId: "day-0925",
+        dateMatch: "09-25",
+        pillText: "09/25 D2",
+        dateStr: "09/25 周五",
+        dayTag: "Day 2",
+        routeName: "马六甲 ➔ 吉隆坡",
+        nodes: [
+          { time: "上午", desc: "早茶 / babakaya 早饭 ➔ [马六甲海峡清真寺]（昨日未去则今早）➔ [荷兰红屋] 等 ➔ [鸡场街] ➔ [Kopi Harian] / [Calanthe Art Cafe] 午饭 ➔ 前往吉隆坡" },
+          { time: "下午", desc: "入住 [美苏伊武吉免登酒店] ➔ [城中城公园] ➔ [双子塔] / [Oriental Kopi 板面] / [NZ 咖喱屋] / [Alva KL] 空中赏塔 软壳蟹 ➔ [亚罗美食街]：TG's Bistro 打卡 Ella 同款 Roti Canai 印度甩饼、Murtabak 印式肉饼、红毛榴莲汁 Soursop、竹蔗茅根水 ➔ [娘惹丽色] 博威广场 开到10点" }
+        ]
+      },
+      {
+        dayId: "day-0926",
+        dateMatch: "09-26",
+        pillText: "09/26 D3",
+        dateStr: "09/26 周六",
+        dayTag: "Day 3",
+        routeName: "吉隆坡",
+        nodes: [
+          { time: "上午", desc: "7点出发 [何九茶店] 7:30 早饭 咖喱肠粉 海南茶 生熟蛋烤面包（起不来就下午吃）➔ [黑风洞] 回程火车10点 / 公交 9:15、9:45 ➔ [独立广场] ➔ [Bartolo 葡萄牙蛋挞] ➔ [中央艺术坊] ➔ [茨厂街] 午饭 [金莲记福建面]" },
+          { time: "下午", desc: "[植物园] 1h（太热不去）➔ [国家天文馆] ➔ [警察博物馆] ➔ [伊斯兰艺术博物馆] ➔ [斯里玛哈马廉曼兴都庙] / [REXKL 书店] / [Dury Dury 鬼仔巷] / [陈氏书院]" }
+        ]
+      },
+      {
+        dayId: "day-0927",
+        dateMatch: "09-27",
+        pillText: "09/27 D4",
+        dateStr: "09/27 周日",
+        dayTag: "Day 4",
+        routeName: "吉隆坡 ➔ 槟城",
+        nodes: [
+          { time: "上午", desc: "8:30 [小印度十五碑] 早饭/逛街 50min [MTR 南印度餐馆] masala dosa + filter coffee + bonda soup / 1pc podi idli ➔ [国家博物馆] 9:30 60min ➔ [国家清真寺] ➔ 11点抵达 [吉隆坡中央车站]" },
+          { time: "下午", desc: "11:30 - 15:15 火车前往槟城（车上有中饭）➔ 联系 Jack 预定 Kayak（重要）➔ [Butterworth 北海站] 10min walk 轮渡码头 ➔ 15min 到乔治市 ➔ 16:00 入住 ➔ [槟城侨生博物馆] 附近 印度风味两家：[Rempah Ratus]（Mutton Masala）[Bite N Eat] 米其林餐厅 有 chukkumalli coffee ➔ 最好租到摩托车（重要） [STARDUST 1]" }
+        ]
+      },
+      {
+        dayId: "day-0928",
+        dateMatch: "09-28",
+        pillText: "09/28 D5",
+        dateStr: "09/28 周一",
+        dayTag: "Day 5",
+        routeName: "槟城",
+        nodes: [
+          { time: "上午", desc: "6:30 打车去 [升旗山] 或者摩托去 爬升 600m 约 2h（没睡好就小火车上下 15x2=30RM）➔ 公交 40min 回程" },
+          { time: "下午", desc: "摩托车环岛 或 市中心散步酒吧 [Seek Penang]" }
+        ]
+      },
+      {
+        dayId: "day-0929",
+        dateMatch: "09-29",
+        pillText: "09/29 D6",
+        dateStr: "09/29 周二",
+        dayTag: "Day 6",
+        routeName: "槟城",
+        nodes: [
+          { time: "全天休息", desc: "休息日 ➔ 新加坡签证（重要） ➔ [Tan Jetty 姓陈桥]、[娘惹博物馆] 有演出、[七條路爪哇面 伊府面] ➔ 10min walk ➔ [三条路888福建面 虾面] ➔ 15min walk ➔ [檳城潮州珍多冰 煎蕊] ➔ [Pasar Chowrasta Market] ➔ [多春茶室] ➔ 北面沿海：[张弼士故居] ➔ [Esplanade Viewspot] ➔ [槟城市政厅] ➔ [康华丽斯堡]" }
+        ]
+      },
+      {
+        dayId: "day-0930",
+        dateMatch: "09-30",
+        pillText: "09/30 D7",
+        dateStr: "09/30 周三",
+        dayTag: "Day 7",
+        routeName: "槟城 ➔ 兰卡威",
+        nodes: [
+          { time: "全天机动", desc: "09:55 - 10:30 AK6241 飞抵兰卡威 ➔ 入住后先去 [AB Travel] 预定（重要）➔ 14:00 跳岛游 17:00 结束 ➔ 时间多可以去瓜镇（周三正好开门）" }
+        ]
+      },
+      {
+        dayId: "day-1001",
+        dateMatch: "10-01",
+        pillText: "10/01 D8",
+        dateStr: "10/01 周四",
+        dayTag: "Day 8",
+        routeName: "兰卡威",
+        nodes: [
+          { time: "全天机动", desc: "8:00 出发 红树林 Kayak 13:00 回 ➔ 落日巡航（落日和跳岛可互换，根据实际情况）➔ 餐厅备选：[Yasmin Syrian Restaurant] 沙拉 tobbouleh 和 羊肉 kebab" }
+        ]
+      },
+      {
+        dayId: "day-1002",
+        dateMatch: "10-02",
+        pillText: "10/02 D9",
+        dateStr: "10/02 周五",
+        dayTag: "Day 9",
+        routeName: "兰卡威 ➔ 新加坡",
+        nodes: [
+          { time: "上午", desc: "[Bella Restaurant] 早饭 牛肉汤粉 Beef Phat Thai Soup ➔ 10:00 Grab 15min 到机场 ➔ 12:05 起飞" },
+          { time: "下午", desc: "12:05 - 13:40 落地新加坡 ➔ 出关 1h ➔ 火车 ➔ 入住" }
+        ]
+      },
+      {
+        dayId: "day-1003",
+        dateMatch: "10-03",
+        pillText: "10/03 D10",
+        dateStr: "10/03 周六",
+        dayTag: "Day 10",
+        routeName: "新加坡",
+        nodes: [
+          { time: "全天机动", desc: "20min 到 [小印度] ➔ [苏丹回教堂] ➔ [哈芝港] ……" }
+        ]
+      },
+      {
+        dayId: "day-1004",
+        dateMatch: "10-04",
+        pillText: "10/04 D11",
+        dateStr: "10/04 周日",
+        dayTag: "Day 11",
+        routeName: "新加坡",
+        nodes: [
+          { time: "下午", desc: "13:30 [Ocean Restaurant] ➔ [天福宫] ➔ 鱼狮尾 ➔ [牛车水] 礼品 ……" },
+          { time: "晚上", desc: "到机场 ➔ [樟宜机场大瀑布] 22:00 前" }
+        ]
+      },
+      {
+        dayId: "day-1005",
+        dateMatch: "10-05",
+        pillText: "10/05 D12",
+        dateStr: "10/05 周一",
+        dayTag: "Day 12",
+        routeName: "新加坡 ➔ 杭州",
+        nodes: [
+          { time: "凌晨", desc: "02:30 航班回国" }
+        ]
+      }
+    ];
+
+    const checklistData = [
+      "护照", "身份证", "手机", "充电宝", "充电线x2", "转换头","手机防水袋",
+      "信用卡 储蓄卡", "内衣裤 (5)", "袜子 (5)", "短袖/T恤 (3)", "长裤",
+      "薄长裤", "防晒衣", "鞋一双", "彩色外套", "黑短裤", "面巾","手套",  
+      "防晒", "纸巾湿巾", "药品", "伞", "SIM卡", "驱蚊液", "驾驶证和翻译件"
+    ];
+
+    const collapseState = {};
+
+    /* ---------- LOG 页面卡片点击与跳转逻辑 ---------- */
+    function openApp(scheme, webUrl) {
+      const startTime = Date.now();
+      window.location.href = scheme;
+      setTimeout(() => {
+        if (Date.now() - startTime < 2000) {
+          window.location.href = webUrl;
+        }
+      }, 1500);
+    }
+
+    function toggleCardCollapse(cardId, e) {
+      if (e) e.stopPropagation();
+      collapseState[cardId] = !collapseState[cardId];
+      renderLogPage();
+    }
+
+    function renderLogPage() {
+      const transitContainer = document.getElementById('log-transit-container');
+      const hotelContainer = document.getElementById('log-hotel-container');
+      const now = new Date();
+
+      // 渲染交通卡片
+      transitContainer.innerHTML = transitList.map(item => {
+        const itemEndDate = new Date(item.endDateStr);
+        const isPast = now > itemEndDate;
+        if (collapseState[item.id] === undefined) {
+          collapseState[item.id] = isPast;
+        }
+        const isCollapsed = collapseState[item.id];
+
+        if (isCollapsed) {
+          return `
+            <div class="card-completed-bar" onclick="toggleCardCollapse('${item.id}', event)">
+              <span class="completed-text-title">${item.collapsedTitle}</span>
+              <span class="completed-tag-status">已完成</span>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="card-item" onclick="openApp('${item.scheme}', '${item.webUrl}')">
+              <div class="card-top-bar">
+                <span class="orange-tag">${item.tag}</span>
+                <span class="app-platform-text">${item.platform}</span>
+                <span class="card-date">${item.date}</span>
+              </div>
+              <div class="card-route-row">
+                <span class="card-route-title">${item.title.replace('➔', '<span class="card-route-arrow">➔</span>')}</span>
+                <span class="card-time-orange">${item.time}</span>
+              </div>
+              <div class="card-sub-code">${item.subCode}</div>
+              <div class="card-desc-text">${item.desc1}</div>
+              ${item.desc2 ? `<div class="card-desc-text">${item.desc2}</div>` : ''}
+              ${isPast ? `
+                <div style="text-align: right; margin-top: 8px;">
+                  <span style="font-size: 12px; color: #999; text-decoration: underline;" onclick="toggleCardCollapse('${item.id}', event)">折叠行程</span>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+      }).join('');
+
+      // 渲染住宿卡片
+      hotelContainer.innerHTML = hotelList.map(item => {
+        const itemEndDate = new Date(item.endDateStr);
+        const isPast = now > itemEndDate;
+        if (collapseState[item.id] === undefined) {
+          collapseState[item.id] = isPast;
+        }
+        const isCollapsed = collapseState[item.id];
+
+        if (isCollapsed) {
+          return `
+            <div class="card-completed-bar" onclick="toggleCardCollapse('${item.id}', event)">
+              <span class="completed-text-title">${item.collapsedTitle}</span>
+              <span class="completed-tag-status">已完成</span>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="card-item" onclick="openApp('${item.scheme}', '${item.webUrl}')">
+              <div class="card-top-bar">
+                <span class="orange-tag">${item.tag}</span>
+                <span class="app-platform-text">${item.platform}</span>
+                <span class="card-date">${item.date}</span>
+              </div>
+              <div class="card-route-row">
+                <span class="card-route-title">${item.title}</span>
+                <span class="card-time-orange">${item.nights}</span>
+              </div>
+              <div class="card-sub-code">${item.subCode}</div>
+              <div class="card-desc-text">${item.desc}</div>
+              ${isPast ? `
+                <div style="text-align: right; margin-top: 8px;">
+                  <span style="font-size: 12px; color: #999; text-decoration: underline;" onclick="toggleCardCollapse('${item.id}', event)">折叠行程</span>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    /* ---------- PLAN 页面 Google 地图关联 ---------- */
+    function openGoogleMap(query) {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+      window.open(url, '_blank');
+    }
+
+    function formatPlanDesc(desc) {
+      // 替换匹配 [地点] 转换为对应参考图样式的微缩胶囊标签
+      return desc.replace(/\[(.*?)\]/g, (match, p1) => {
+        return `<span class="map-location-link" onclick="openGoogleMap('${p1}')">${p1}</span>`;
+      });
+    }
+
+    function renderPlanPage() {
+      const pillNav = document.getElementById('pill-nav-container');
+      const listContainer = document.getElementById('plan-list-container');
+
+      pillNav.innerHTML = planData.map(d => `
+        <div class="date-pill" id="pill-${d.dayId}" onclick="scrollToDay('${d.dayId}')">${d.pillText}</div>
+      `).join('');
+
+      listContainer.innerHTML = planData.map(d => `
+        <div id="${d.dayId}" style="margin-bottom: 24px;">
+          <div class="plan-dark-bar" style="cursor: pointer;" onclick="togglePlanDay('${d.dayId}')">
+            <span class="plan-dark-bar-date">${d.dateStr}</span>
+            <span class="plan-dark-bar-day">${d.dayTag}</span>
+          </div>
+
+          <div id="body-${d.dayId}">
+            <div class="plan-route-title-v3">${d.routeName}</div>
+
+            ${d.nodes.map(node => `
+              <div class="plan-node-card-v3">
+                <div class="plan-node-time-v3">${node.time}</div>
+                <div class="plan-node-desc-v3">${formatPlanDesc(node.desc)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ---------- 通用 UI 逻辑 ---------- */
+    const LOCK_WINDOW_MS = 8 * 60 * 60 * 1000; // 8小时免密窗口
+
+    // 页面加载时检查：8小时内验证过则免密直接进入
+    (function initLock() {
+      const lastVerified = localStorage.getItem('lock_verified_at');
+      if (lastVerified) {
+        const ts = parseInt(lastVerified, 10);
+        if (!isNaN(ts) && (Date.now() - ts) < LOCK_WINDOW_MS) {
+          document.getElementById('lock-screen').style.display = 'none';
+        }
+      }
+    })();
+
+    function handlePin(el, index) {
+      document.getElementById('lock-error').style.visibility = 'hidden';
+      // 只处理本次输入的字符；用正则只保留数字，防止异常字符
+      el.value = el.value.replace(/[^0-9]/g, '');
+      if (el.value.length === 1 && index < 3) {
+        document.querySelectorAll('.pin-box')[index + 1].focus();
+      } else if (el.value.length === 0 && index > 0) {
+        // 退格时回到上一个输入框
+        document.querySelectorAll('.pin-box')[index - 1].focus();
+      }
+      const boxes = document.querySelectorAll('.pin-box');
+      let pin = '';
+      boxes.forEach(b => pin += b.value);
+      if (pin.length === 4) {
+        const savedPass = localStorage.getItem('app_password') || '1234';
+        if (pin === savedPass) {
+          // 记录本次验证时间，8小时内再次打开免密
+          localStorage.setItem('lock_verified_at', Date.now());
+          document.getElementById('lock-screen').style.display = 'none';
+        } else {
+          document.getElementById('lock-error').style.visibility = 'visible';
+          boxes.forEach(b => b.value = '');
+          boxes[0].focus();
+        }
+      }
+    }
+
+    function switchTab(tabKey, el) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      el.classList.add('active');
+      document.getElementById(`tab-${tabKey}`).classList.add('active');
+
+      if (tabKey === 'LOG') {
+        renderLogPage();
+      } else if (tabKey === 'PLAN') {
+        scrollToTodayPlan();
+      }
+    }
+
+    function startTravelTimer() {
+      const startDate = new Date('2026-09-24T08:50:00').getTime();
+      const endDate = new Date('2026-10-05T02:30:00').getTime();
+
+      setInterval(() => {
+        const now = new Date().getTime();
+
+        if (now < startDate) {
+          const diff = startDate - now;
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+          const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+          const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+
+          document.getElementById('status-label').innerText = "离出发还有";
+          document.getElementById('status-time').innerText = `${days} 天 ${hours}:${minutes}:${seconds}`;
+
+        } else if (now >= startDate && now < endDate) {
+          const diff = now - startDate;
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+          const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+          const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+
+          document.getElementById('status-label').innerText = "已经爽玩";
+          document.getElementById('status-time').innerText = `${days} 天 ${hours}:${minutes}:${seconds}`;
+
+        } else {
+          document.getElementById('status-label').innerText = "本次旅程";
+          document.getElementById('status-time').innerText = "共爽玩 11天 17小时 40分";
+        }
+      }, 1000);
+    }
+
+    function toggleCollapse() {
+      document.getElementById('collapse-body').classList.toggle('open');
+    }
+
+    function updateCheckProgress() {
+      const container = document.getElementById('checklist-container');
+      const progressEl = document.getElementById('checklist-progress');
+      if (!container || !progressEl) return;
+      const total = container.querySelectorAll('.checklist-item').length;
+      const checked = container.querySelectorAll('input:checked').length;
+      progressEl.innerText = `${checked} / ${total}`;
+    }
+
+    function convertCurrency() {
+      const amount = parseFloat(document.getElementById('calc-amount').value) || 0;
+      const currency = document.getElementById('calc-currency').value;
+      let rate = currency === 'SGD' ? 5.25 : 1.65;
+      document.getElementById('calc-result').innerText = (amount * rate).toFixed(1);
+    }
+
+    function updatePassword() {
+      const val = document.getElementById('new-pass-input').value;
+      if (val.length === 4) {
+        localStorage.setItem('app_password', val);
+        alert('密码保存成功！');
+      }
+    }
+
+    function toggleMemoSection(id) {
+      const content = document.getElementById(id);
+      if (!content) return;
+      content.classList.toggle('open');
+    }
+
+    function loadMemo() {
+      const memo = localStorage.getItem('memo_content') || '';
+      document.getElementById('memo-text').textContent = memo;
+    }
+
+    function editMemo() {
+      const memo = localStorage.getItem('memo_content') || '';
+      document.getElementById('memo-input').value = memo;
+      document.getElementById('memo-text').style.display = 'none';
+      document.getElementById('memo-actions').style.display = 'block';
+    }
+
+    function saveMemo() {
+      const val = document.getElementById('memo-input').value.trim();
+      localStorage.setItem('memo_content', val);
+      document.getElementById('memo-text').textContent = val;
+      document.getElementById('memo-text').style.display = '';
+      document.getElementById('memo-actions').style.display = 'none';
+    }
+
+    function cancelMemoEdit() {
+      document.getElementById('memo-text').style.display = '';
+      document.getElementById('memo-actions').style.display = 'none';
+    }
+
+    function togglePlanDay(dayId) {
+      const body = document.getElementById('body-' + dayId);
+      if (!body) return;
+      body.style.display = (body.style.display === 'none') ? '' : 'none';
+    }
+
+    function scrollToDay(dayId) {
+      document.querySelectorAll('.date-pill').forEach(p => p.classList.remove('active'));
+      const activePill = document.getElementById(`pill-${dayId}`);
+      if (activePill) {
+        activePill.classList.add('active');
+        activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+
+      const el = document.getElementById(dayId);
+      if (el) {
+        const headerOffset = 70;
+        const elementPosition = el.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      }
+    }
+
+    function scrollToTodayPlan() {
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayMatch = `${month}-${day}`;
+
+      let targetDay = planData.find(d => d.dateMatch === todayMatch);
+      if (!targetDay) {
+        targetDay = planData[0];
+      }
+      scrollToDay(targetDay.dayId);
+    }
+
+    window.onload = function() {
+      startTravelTimer();
+      loadMemo();
+
+      document.getElementById('checklist-container').innerHTML = checklistData.map((item, idx) => `
+        <div class="checklist-item" id="chk-item-${idx}">
+          <input type="checkbox" id="chk-${idx}" onchange="document.getElementById('chk-item-${idx}').classList.toggle('checked', this.checked); updateCheckProgress();">
+          <label for="chk-${idx}">${item}</label>
+        </div>
+      `).join('');
+      updateCheckProgress(); // 初始计数自动填充，增删清单无需手动改
+
+      renderLogPage();
+      renderPlanPage();
+    };
+  </script>
+</body>
+</html>
