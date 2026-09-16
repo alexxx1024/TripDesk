@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-page-node-id="3CF1soIHMuYzlb5qzFct7W">
-<head data-page-node-id="VEpOQYjiNUW4jC4XkH82Qt">
-  <meta charset="UTF-8" data-page-node-id="REEFsMDzdcKjHo8a7U1sNi">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" data-page-node-id="tfVm6Qu8biNeRyjrsQMqLB">
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>M-S Travel Guide</title>
   <style>
     /* --------------------------------------------------
@@ -307,6 +307,26 @@
     }
     .checklist-item.checked label { text-decoration: line-through; color: #AAA; }
 
+    /* 编辑清单：删除按钮（x） */
+    .checklist-del-btn {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #999;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .checklist-del-btn:hover {
+      background: #F2F2F2;
+      color: var(--accent-orange);
+    }
+
     /* --------------------------------------------------
        6. LOG 页面
     -------------------------------------------------- */
@@ -362,7 +382,7 @@
 
     .card-route-title {
       font-size: 18px;
-      font-weight: 900;
+      font-weight: 800;
       color: var(--dark-text);
     }
 
@@ -424,6 +444,11 @@
       padding-bottom: 8px;
       margin-bottom: 12px;
       -webkit-overflow-scrolling: touch;
+      position: sticky;
+      top: calc(60px + env(safe-area-inset-top));
+      z-index: 990;
+      background: var(--gray-bg);
+      padding-top: 4px;
     }
 
     .pill-scroll-container::-webkit-scrollbar {
@@ -486,7 +511,7 @@
 
     .plan-node-time-v3 {
       font-size: 20px;
-      font-weight: 800;
+      font-weight: 600;
       color: var(--accent-orange);
       margin-bottom: 8px;
     }
@@ -498,7 +523,6 @@
       font-weight: 400;
     }
 
-    /* 可点击地点标签 */
     .map-location-link {
       display: inline-block;
       background-color: #EBF2EE;
@@ -594,463 +618,229 @@
     }
   </style>
 </head>
-<body data-page-node-id="QTzqrYt6xQ4ShvHQSk1LwT">
+<body>
 
   <!-- 密码验证弹窗 -->
-  <div id="lock-screen" data-page-node-id="5sDenNMXbOwy2mBtAJYlnq" onclick="focusHiddenPin()">
-    <div class="lock-main-title" data-page-node-id="M6ykUsEklZkCnWa8UrGkL9">Malaysia-Singapore</div>
-    <div class="pin-container" data-page-node-id="3BLmhVm1GtPxoiEEHKWNg9">
-      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="6xdXzwjTeyX7lsI5aFCEfg">
-      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="oio80fpuoVoLwh9WHFUprf">
-      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="MxBrgRor4RLyoDittu6sEE">
-      <input type="text" readonly class="pin-box pin-display" maxlength="1" data-page-node-id="GvdVZ2muuuGT8GyCXyJN0g">
+  <div id="lock-screen" onclick="focusHiddenPin()">
+    <div class="lock-main-title">Malaysia-Singapore</div>
+    <div class="pin-container">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1">
+      <input type="text" readonly class="pin-box pin-display" maxlength="1">
     </div>
-    <!-- 隐藏的真实输入框：数字键盘只弹出一次，驱动 4 格展示 -->
     <input type="tel" id="pin-hidden-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="密码输入" style="position: fixed; left: -9999px; top: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; margin: 0;">
-    <div id="lock-error" class="lock-error-msg" data-page-node-id="0cKAfzLvOjtQN3H8G5ZkKe">密码错误，请重试</div>
+    <div id="lock-error" class="lock-error-msg">密码错误，请重试</div>
   </div>
 
   <!-- Header -->
-  <header data-page-node-id="c8AqmFHwBCeX7N8IucrA8O">
-    <div class="header-logo" data-page-node-id="Zo9Fcb6XMwZCdOhsnXXd4R">M-S</div>
-    <div class="nav-tabs" data-page-node-id="oaY7DxbZiiAINHtCHIny0n">
-      <button class="tab-btn active" onclick="switchTab('PRE', this)" data-page-node-id="SCKf5a7uaGSVGgAR751nCb">PRE</button>
-      <button class="tab-btn" onclick="switchTab('LOG', this)" data-page-node-id="dI9xTMHQsQyTGPWG0bc2Ce">LOG</button>
-      <button class="tab-btn" onclick="switchTab('PLAN', this)" data-page-node-id="LfEZtSzBMfTvFAXFAgmrfJ">PLAN</button>
-      <button class="tab-btn" onclick="switchTab('SET', this)" data-page-node-id="6IDPTWWG8VmkcZFBxwn6K1">SET</button>
+  <header>
+    <div class="header-logo">M-S</div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('PRE', this)">PRE</button>
+      <button class="tab-btn" onclick="switchTab('LOG', this)">LOG</button>
+      <button class="tab-btn" onclick="switchTab('PLAN', this)">PLAN</button>
+      <button class="tab-btn" onclick="switchTab('SET', this)">SET</button>
     </div>
   </header>
 
   <!-- ==================================================
        1. PRE 首页
   ================================================== -->
-  <div id="tab-PRE" class="tab-content active" data-page-node-id="OwoHsVo0oKS2krCHdiVgRS">
-    <div class="pre-country-title" data-page-node-id="cEURIND3UOKfTDEz55vWmP">马来西亚 - 新加坡</div>
-    <div class="pre-main-title" data-page-node-id="SiLdjVi82978CZVlwU5S0z">Malaysia/Singapore</div>
+  <div id="tab-PRE" class="tab-content active">
+    <div class="pre-country-title">马来西亚 - 新加坡</div>
+    <div class="pre-main-title">Malaysia/Singapore</div>
     
-    <div class="pre-date-range" data-page-node-id="UxbumjerSlXDLYBs70dWJ9">
-      <span data-page-node-id="GQTIShkbQkjzX00banTtxi">9月24日 - 10月5日</span>
-      <span data-page-node-id="KX3Tm8UppZYjplDC42X6RG">12天</span>
+    <div class="pre-date-range">
+      <span>9月24日 - 10月5日</span>
+      <span>12天</span>
     </div>
 
-    <!-- 深色动态倒计时/状态卡片 -->
-    <div class="status-card" data-page-node-id="yfBXbQG1wHojn6Ri0pfQ2x">
-      <span id="status-label" class="status-label" data-page-node-id="1E1MZWr9UZED7tnwB4UCNW">离出发还有</span>
-      <span id="status-time" class="status-time" data-page-node-id="qpDNEGRRWaFzs7B6U9O1Tq">计算中...</span>
+    <div class="status-card">
+      <span id="status-label" class="status-label">离出发还有</span>
+      <span id="status-time" class="status-time">计算中...</span>
     </div>
 
-    <div class="map-container" data-page-node-id="rBX7nUdEdDRfWy7XHKcTvB">
-      <img src="poster.png" alt="Travel Map Route" data-page-node-id="yLDDvEGhYYDr5H6oMkoFc2">
+    <div class="map-container">
+      <img src="poster.png" alt="Travel Map Route">
     </div>
 
-    <div class="section-title-box" data-page-node-id="5SODaXlUHj9tMZa2DBv6Pd">
-      <span class="section-title-main" data-page-node-id="mSZ3qTRTckO0VqKeougsgT">行前</span>
-      <span class="section-title-sub" data-page-node-id="0Ut6ZBhVm1bLbEALLgpHxg">/ Preparation</span>
+    <div class="section-title-box">
+      <span class="section-title-main">行前</span>
+      <span class="section-title-sub">/ Preparation</span>
     </div>
 
-    <div class="collapse-header" onclick="toggleCollapse()" data-page-node-id="OtZTgAIOJmKBdY0BONlT8D">
-      <span data-page-node-id="fYYfcOeh2t59ijt618V3BM">行前清单 Check List</span>
-      <span id="checklist-progress" style="font-size: 13px; color: var(--accent-orange);" data-page-node-id="vBWHZUkK5RRz6NQ6TZ11Pa"></span>
+    <div class="collapse-header" onclick="toggleCollapse()">
+      <span>行前清单 Check List</span>
+      <span id="checklist-progress" style="font-size: 13px; color: var(--accent-orange);"></span>
     </div>
-    <div id="collapse-body" class="collapse-content" data-page-node-id="OcBRsR7BT0Uh8z0WoqmgV1">
-      <div id="checklist-container" data-page-node-id="Amqwr8f7maGVz8LSbEaQJA"></div>
+    <div id="collapse-body" class="collapse-content">
+      <div id="checklist-container"></div>
+      <div id="checklist-edit-panel" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+        <div style="font-size: 13px; font-weight: 700; color: var(--primary-green); margin-bottom: 8px;">编辑清单</div>
+        <div id="checklist-edit-list" style="display: grid; grid-template-columns: 1fr 1fr; column-gap: 14px; row-gap: 8px; margin-bottom: 12px;"></div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="checklist-new-item" class="num-input" placeholder="新增清单项，如：转换插头" style="flex: 1; min-width: 0;">
+          <button class="set-fixed-btn" style="background: var(--primary-green); color: #fff; border: none; border-radius: 10px; font-weight: 700; height: 44px; width: 88px; flex-shrink: 0;" onclick="addChecklistItem()">添加</button>
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="memo-btn" onclick="cancelChecklistEdit()">取消</button>
+          <button class="memo-btn memo-btn-primary" onclick="saveChecklistEdit()">保存</button>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+        <button class="memo-btn" id="checklist-edit-btn" style="width: 96px;" onclick="enterChecklistEdit()">编辑清单</button>
+      </div>
     </div>
   </div>
 
   <!-- ==================================================
        2. LOG 页面（交通与住宿）
   ================================================== -->
-  <div id="tab-LOG" class="tab-content" data-page-node-id="ALABnYC7gPMgextzCPxNJ7">
-    
-    <div class="section-title-box" data-page-node-id="DSrlrIclTKES0ImdXI9Ng4">
-      <span class="section-title-main" data-page-node-id="Hir5ADEg45SofEDgQTXfto">大交通</span>
-      <span class="section-title-sub" data-page-node-id="MtcyWXbZzwd9JmHK4xblHQ">/ Transit</span>
+  <div id="tab-LOG" class="tab-content">
+    <div class="section-title-box">
+      <span class="section-title-main" onclick="toggleLogReveal('transit')">大交通</span>
+      <span class="section-title-sub">/ Transit</span>
     </div>
-    <div id="log-transit-container" data-page-node-id="qwxF1lcj121C9w4fzrV3Sl"></div>
+    <div id="log-transit-container"></div>
 
-    <div class="section-title-box" data-page-node-id="TyqFSgJnMDMNgPulY6ZPia">
-      <span class="section-title-main" data-page-node-id="dBXEPlxvjQFa9vayPBbXXB">住宿</span>
-      <span class="section-title-sub" data-page-node-id="JEhjLReDAkXZ7OjKHFHDiA">/ Accommodation</span>
+    <div class="section-title-box">
+      <span class="section-title-main" onclick="toggleLogReveal('hotel')">住宿</span>
+      <span class="section-title-sub">/ Accommodation</span>
     </div>
-    <div id="log-hotel-container" data-page-node-id="DGyHq9Jnt7FI5KIQnE4SVC"></div>
-
+    <div id="log-hotel-container"></div>
   </div>
 
   <!-- ==================================================
        3. PLAN 页面
   ================================================== -->
-  <div id="tab-PLAN" class="tab-content" data-page-node-id="h1J3UEbPCtgkcjgB7VgQZC">
-    <div id="pill-nav-container" class="pill-scroll-container" data-page-node-id="nvbEe1eEEJKEsA139pUeQN"></div>
-    <div id="plan-list-container" data-page-node-id="DR0aUWA8j71lQDBUdwxBHI"></div>
+  <div id="tab-PLAN" class="tab-content">
+    <div id="pill-nav-container" class="pill-scroll-container"></div>
+    <div id="plan-list-container"></div>
   </div>
 
   <!-- ==================================================
        4. SET / MEMO 页面
   ================================================== -->
-  <div id="tab-SET" class="tab-content" data-page-node-id="N03uR1GFqQVBq442A4B7dk">
-    <div class="section-title-box" data-page-node-id="aeCo6dapCR7sxfC2LztNos">
-      <span class="section-title-main" data-page-node-id="LHFZqFVQ7h5deo7q2YLiU9">杂项</span>
-      <span class="section-title-sub" data-page-node-id="PFHN1NGLMrGutVw2sS4Enf">/ Memo</span>
+  <div id="tab-SET" class="tab-content">
+    <div class="section-title-box">
+      <span class="section-title-main">杂项</span>
+      <span class="section-title-sub">/ Memo</span>
     </div>
 
-    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-calc')" data-page-node-id="EBX74tA1lvCAlBRqe6XWLE">
-      <span data-page-node-id="4pi50Sj6tXmESULckgyv6A">汇率换算</span>
+    <!-- 新增：飞书 / 外部数据源配置 -->
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-feishu')">
+      <span>数据同步（飞书表格 / API 链接）</span>
     </div>
-    <div id="memo-calc" class="collapse-content memo-collapse-content open" data-page-node-id="SynnKCC0UM2VobxBpmiNt9">
-      <div class="rate-grid" data-page-node-id="I0NcxBRPt5wUzQW5lRGnK3">
-        <div class="rate-card" data-page-node-id="wW2zYgy1yFkThi1eEjICuL">
-          <div style="font-size: 12px; color:#666;" data-page-node-id="DDdyH7RNxOnecXkPUyYQeD">🇲🇾 马币 (MYR)</div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);" data-page-node-id="f9oj6eUEmUaTQSnsPCdWUI">1 MYR ≈ 1.65 CNY</div>
+    <div id="memo-feishu" class="collapse-content memo-collapse-content open">
+      <div style="font-size: 12px; color: #666; margin-bottom: 8px;">填入 Agent 提供的飞书中转链接，网页将实时拉取该表格数据：</div>
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="feishu-api-input" class="num-input" placeholder="输入 API / 中转 URL（留空使用本地 data.json）">
+        <button class="set-fixed-btn" style="background: var(--primary-green); color:#fff; border:none; border-radius: 10px; font-weight: 700; height: 44px;" onclick="saveFeishuApiUrl()">保存并刷新</button>
+      </div>
+    </div>
+
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-calc')">
+      <span>汇率换算</span>
+    </div>
+    <div id="memo-calc" class="collapse-content memo-collapse-content open">
+      <div class="rate-grid">
+        <div class="rate-card">
+          <div style="font-size: 12px; color:#666;">🇲🇾 马币 (MYR)</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);">1 MYR ≈ 1.65 CNY</div>
         </div>
-        <div class="rate-card" data-page-node-id="iL0DHHFvVxBKrN18ZNHjgz">
-          <div style="font-size: 12px; color:#666;" data-page-node-id="JTOU155H3jwIBcuu5SaUES">🇸🇬 新币 (SGD)</div>
-          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);" data-page-node-id="S2BYPg3Yii0j7x0QyzuWnz">1 SGD ≈ 5.25 CNY</div>
+        <div class="rate-card">
+          <div style="font-size: 12px; color:#666;">🇸🇬 新币 (SGD)</div>
+          <div style="font-size: 14px; font-weight: 700; color: var(--primary-green);">1 SGD ≈ 5.25 CNY</div>
         </div>
       </div>
 
-      <div style="font-size: 13px; font-weight: 700; color: var(--primary-green); margin-bottom: 8px;" data-page-node-id="LLDBB4aVWx5Yj9iyeOAoQ4">极简换算器</div>
-      <div style="display: flex; gap: 8px; margin-bottom: 8px;" data-page-node-id="69okOGjOQFgDG233PfINT8">
-        <input type="number" id="calc-amount" class="num-input" placeholder="输入金额" value="100" oninput="convertCurrency()" data-page-node-id="JW6gKCV2Wbd1XgOueFyZyk">
-        <select id="calc-currency" class="set-fixed-btn" style="border-radius: 10px; border:1px solid var(--border-color); font-weight:700; height: 44px; padding: 0 8px;" onchange="convertCurrency()" data-page-node-id="LdHriAZv0gj43loJzE7uZH">
-          <option value="MYR" data-page-node-id="OsTZPnxQLGK7x4Dqy9wmbW">MYR</option>
-          <option value="SGD" data-page-node-id="wwPIXGUTdd2P2Rgc2rso04">SGD</option>
+      <div style="font-size: 13px; font-weight: 700; color: var(--primary-green); margin-bottom: 8px;">极简换算器</div>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="number" id="calc-amount" class="num-input" placeholder="输入金额" value="100" oninput="convertCurrency()">
+        <select id="calc-currency" class="set-fixed-btn" style="border-radius: 10px; border:1px solid var(--border-color); font-weight:700; height: 44px; padding: 0 8px;" onchange="convertCurrency()">
+          <option value="MYR">MYR</option>
+          <option value="SGD">SGD</option>
         </select>
       </div>
-      <div style="text-align: right; font-size: 14px; font-weight:600;" data-page-node-id="HCn4h4dFoXcjItJvVnYk00">
-        约合人民币: <b id="calc-result" style="color: var(--accent-orange); font-size: 18px;" data-page-node-id="ZYsQBPq6RBAkgHP1pO0AyK">165.0</b> 元
+      <div style="text-align: right; font-size: 14px; font-weight:600;">
+        约合人民币: <b id="calc-result" style="color: var(--accent-orange); font-size: 18px;">165.0</b> 元
       </div>
     </div>
 
-    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-note')" data-page-node-id="WEXgIlMBKwWsSt5AEYlUCA">
-      <span data-page-node-id="tAQSEiZ8ojHWHO9Zkxiypg">备忘录</span>
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-note')">
+      <span>备忘录</span>
     </div>
-    <div id="memo-note" class="collapse-content memo-collapse-content open" data-page-node-id="4N0U0i7l82ujOGiDKSBiD0">
-      <div class="memo-text" id="memo-text" onclick="editMemo()" data-page-node-id="TeiYmBKzbNXICAWJvMrMLp"></div>
-      <div class="memo-actions" id="memo-actions" style="display: none;" data-page-node-id="YEXWa9bEdJJyXuCLMoy63p">
+    <div id="memo-note" class="collapse-content memo-collapse-content open">
+      <div class="memo-text" id="memo-text" onclick="editMemo()"></div>
+      <div class="memo-actions" id="memo-actions" style="display: none;">
         <textarea id="memo-input" class="num-input" rows="6" placeholder="写下你的备忘内容..."></textarea>
-        <div style="display: flex; gap: 8px; margin-top: 8px;" data-page-node-id="weD8O5FojLXqS54JUwCLDj">
-          <button class="memo-btn memo-btn-primary" onclick="saveMemo()" data-page-node-id="JQ6HnE0XaTA1ylCrBG4miD">保存</button>
-          <button class="memo-btn" onclick="cancelMemoEdit()" data-page-node-id="D0v6Z42mXvKpZlxcAIi6vX">取消</button>
+        <div style="display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end;">
+          <button class="memo-btn" style="width: 96px;" onclick="cancelMemoEdit()">取消</button>
+          <button class="memo-btn memo-btn-primary" style="width: 96px;" onclick="saveMemo()">保存</button>
         </div>
       </div>
     </div>
 
-    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-pass')" data-page-node-id="2Ftyu4BwVUKF6SipkkxlYJ">
-      <span data-page-node-id="SPDzJX9e3pUA04vkupkDCM">修改密码</span>
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-pass')">
+      <span>修改密码</span>
     </div>
-    <div id="memo-pass" class="collapse-content memo-collapse-content open" data-page-node-id="iVSqpet5H4NByXkuoJnIKL">
-      <div style="display: flex; gap: 8px;" data-page-node-id="0RiCDOlsAyQrBFAhpQLwjZ">
-        <input type="password" id="new-pass-input" maxlength="4" class="num-input" placeholder="4位新密码" data-page-node-id="xyXANYWCCotAD0ncfZCggZ">
-        <button class="set-fixed-btn" style="background: var(--accent-orange); color:#fff; border:none; border-radius: 10px; font-weight: 700; height: 44px;" onclick="updatePassword()" data-page-node-id="45rrmiJozCPqWYmGBFwc4f">保存</button>
+    <div id="memo-pass" class="collapse-content memo-collapse-content open">
+      <div style="display: flex; gap: 8px;">
+        <input type="password" id="new-pass-input" maxlength="4" class="num-input" placeholder="4位新密码">
+        <button class="set-fixed-btn" style="background: var(--accent-orange); color:#fff; border:none; border-radius: 10px; font-weight: 700; height: 44px;" onclick="updatePassword()">保存</button>
       </div>
     </div>
   </div>
 
   <script>
     /* --------------------------------------------------
-       LOG 页面数据配置
+       全局数据变量定义（由 fetch 动态加载 populate）
     -------------------------------------------------- */
-    const transitList = [
-      {
-        id: "transit-1",
-        endDateStr: "2026-09-24T14:20:00",
-        tag: "机票",
-        platform: "携程",
-        date: "09/24 周四",
-        title: "杭州 ➔ 吉隆坡",
-        collapsedTitle: "杭州 ➔ 吉隆坡",
-        time: "08:50 - 14:20",
-        subCode: "HGH T4 - KUL T1",
-        desc1: "东方航空 MU5095 | 5h30m",
-        desc2: "经济舱 空客320(中) | 含早餐",
-        scheme: "ctrip://wireless/InlandFlight",
-        webUrl: "https://m.ctrip.com/html5/flight/swift/index"
-      },
-      {
-        id: "transit-2",
-        endDateStr: "2026-09-27T15:15:00",
-        tag: "火车",
-        platform: "KTM",
-        date: "09/27 周日",
-        title: "吉隆坡 ➔ 槟城",
-        collapsedTitle: "吉隆坡 ➔ 槟城",
-        time: "11:40 - 15:15",
-        subCode: "KL Sentral - Butterworth",
-        desc1: "车次 EX9108 | 座位 A/A2",
-        scheme: "ktm://",
-        webUrl: "https://online.ktmb.com.my/"
-      },
-      {
-        id: "transit-3",
-        endDateStr: "2026-09-30T10:30:00",
-        tag: "机票",
-        platform: "飞猪",
-        date: "09/30 周三",
-        title: "槟城 ➔ 兰卡威",
-        collapsedTitle: "槟城 ➔ 兰卡威",
-        time: "09:55 - 10:30",
-        subCode: "PEN Terminal D - LGK MAIN",
-        desc1: "亚航 AK6241 | 约 35 分钟",
-        scheme: "fliggy://",
-        webUrl: "https://www.fliggy.com/"
-      },
-      {
-        id: "transit-4",
-        endDateStr: "2026-10-02T13:40:00",
-        tag: "机票",
-        platform: "去哪儿",
-        date: "10/02 周五",
-        title: "兰卡威 ➔ 新加坡",
-        collapsedTitle: "兰卡威 ➔ 新加坡",
-        time: "12:05 - 13:40",
-        subCode: "LGK Airport - SIN Terminal 4",
-        desc1: "亚航 AK728 | 预订编码: F92Q4F",
-        scheme: "qunarphone://",
-        webUrl: "https://m.qunar.com/"
-      },
-      {
-        id: "transit-5",
-        endDateStr: "2026-10-05T02:30:00",
-        tag: "机票",
-        platform: "携程",
-        date: "10/05 周一 (返程)",
-        title: "新加坡 ➔ 杭州",
-        collapsedTitle: "新加坡 ➔ 杭州",
-        time: "02:30 - 11:00",
-        subCode: "SIN T3 - HGH T3",
-        desc1: "东方航空 MU9648 / MU5883 中转昆明",
-        scheme: "ctrip://wireless/InlandFlight",
-        webUrl: "https://m.ctrip.com/html5/flight/swift/index"
-      }
-    ];
-
-    const hotelList = [
-      {
-        id: "hotel-1",
-        endDateStr: "2026-09-25T12:00:00",
-        tag: "马六甲",
-        platform: "Booking",
-        date: "9/24",
-        title: "霍尔马克休闲酒店",
-        collapsedTitle: "马六甲 1晚",
-        nights: "1晚",
-        subCode: "Hallmark Leisure Hotel",
-        desc: "68, Jalan Portugis, Hotel Hall Mark, Off, Jalan Kubu, Kampung Satu, 75200 Melaka, Malaysia",
-        scheme: "booking://",
-        webUrl: "https://www.booking.com/"
-      },
-      {
-        id: "hotel-2",
-        endDateStr: "2026-09-27T12:00:00",
-        tag: "吉隆坡",
-        platform: "Booking",
-        date: "9/25, 9/26",
-        title: "美苏伊武吉免登酒店",
-        collapsedTitle: "吉隆坡 2晚",
-        nights: "2晚",
-        subCode: "The Mesui Hotel Bukit Bintang",
-        desc: "9, Jln Mesui, Bukit Bintang, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
-        scheme: "booking://",
-        webUrl: "https://www.booking.com/"
-      },
-      {
-        id: "hotel-3",
-        endDateStr: "2026-09-30T12:00:00",
-        tag: "槟城",
-        platform: "Booking",
-        date: "9/27, 9/28, 9/29",
-        title: "麦蒙庄园传统酒店",
-        collapsedTitle: "槟城 3晚",
-        nights: "3晚",
-        subCode: "Melmond Maison Heritage Hotel",
-        desc: "59, Lebuh Melayu, George Town, 10100 George Town, Pulau Pinang, Malaysia",
-        scheme: "booking://",
-        webUrl: "https://www.booking.com/"
-      },
-      {
-        id: "hotel-4",
-        endDateStr: "2026-10-02T12:00:00",
-        tag: "兰卡威",
-        platform: "Airbnb",
-        date: "9/30, 10/1",
-        title: "兰卡威客用小屋",
-        collapsedTitle: "兰卡威 2晚",
-        nights: "2晚",
-        subCode: "Liv Bumi Oasis (Guest House)",
-        desc: "No 1, Lot 1565, Lorong Surau No 1, Lot 1565, 07000 Langkawi, Kedah, Malaysia",
-        scheme: "booking://",
-        webUrl: "https://www.booking.com/"
-      },
-      {
-        id: "hotel-5",
-        endDateStr: "2026-10-04T12:00:00",
-        tag: "新加坡",
-        platform: "Booking",
-        date: "10/2, 10/3",
-        title: "KINN Habitat",
-        collapsedTitle: "新加坡 2晚",
-        nights: "2晚",
-        subCode: "KINN Habitat",
-        desc: "5 Hongkong St, Singapore 059648",
-        scheme: "airbnb://",
-        webUrl: "https://www.airbnb.com/"
-      }
-    ];
-
-    /* --------------------------------------------------
-       PLAN 行程数据配置
-    -------------------------------------------------- */
-    const planData = [
-      {
-        dayId: "day-0924",
-        dateMatch: "09-24",
-        pillText: "09/24 D1",
-        dateStr: "09/24 周四",
-        dayTag: "Day 1",
-        routeName: "杭州 ➔ 吉隆坡 ➔ 马六甲",
-        nodes: [
-          { time: "上午", desc: "4:30 起床 ➔ 5:00 出发 ➔ 5:40 到公司打车 ➔ 6:30 到机场 ➔ 飞猪在线选座（去兰卡威的航班）➔ 08:50 - 14:20 MU5095 飞往吉隆坡" },
-          { time: "下午", desc: "14:20 落地 ➔ 出关后买大巴票（现场 / [redbus] / [easybook]，可提前查看时间表）➔ 15:30/16:00 - 18:00 大巴到马六甲 (2h+)" },
-          { time: "晚上", desc: "入住 吃饭 ➔ [马六甲海峡清真寺] 晚霞（来不及就第二天一早去）➔ [马来西亚十三州咖啡] 8点前 / [The Daily Fix Cafe] 8:30前 ➔ 夜游 [马六甲河] ➔ 寻找 Golden 三轮 ➔ WhatsApp 搞好" }
-        ]
-      },
-      {
-        dayId: "day-0925",
-        dateMatch: "09-25",
-        pillText: "09/25 D2",
-        dateStr: "09/25 周五",
-        dayTag: "Day 2",
-        routeName: "马六甲 ➔ 吉隆坡",
-        nodes: [
-          { time: "上午", desc: "早茶 / babakaya 早饭 ➔ [马六甲海峡清真寺]（昨日未去则今早）➔ [荷兰红屋] 等 ➔ [鸡场街] ➔ [Kopi Harian] / [Calanthe Art Cafe] 午饭 ➔ 前往吉隆坡" },
-          { time: "下午", desc: "入住 [美苏伊武吉免登酒店] ➔ [城中城公园] ➔ [双子塔] / [Oriental Kopi 板面] / [NZ 咖喱屋] / [Alva KL] 空中赏塔 软壳蟹 ➔ [亚罗美食街]：TG's Bistro 打卡 Ella 同款 Roti Canai 印度甩饼、Murtabak 印式肉饼、红毛榴莲汁 Soursop、竹蔗茅根水 ➔ [娘惹丽色] 博威广场 开到10点" }
-        ]
-      },
-      {
-        dayId: "day-0926",
-        dateMatch: "09-26",
-        pillText: "09/26 D3",
-        dateStr: "09/26 周六",
-        dayTag: "Day 3",
-        routeName: "吉隆坡",
-        nodes: [
-          { time: "上午", desc: "7点出发 [何九茶店] 7:30 早饭 咖喱肠粉 海南茶 生熟蛋烤面包（起不来就下午吃）➔ [黑风洞] 回程火车10点 / 公交 9:15、9:45 ➔ [独立广场] ➔ [Bartolo 葡萄牙蛋挞] ➔ [中央艺术坊] ➔ [茨厂街] 午饭 [金莲记福建面]" },
-          { time: "下午", desc: "[植物园] 1h（太热不去）➔ [国家天文馆] ➔ [警察博物馆] ➔ [伊斯兰艺术博物馆] ➔ [斯里玛哈马廉曼兴都庙] / [REXKL 书店] / [Dury Dury 鬼仔巷] / [陈氏书院]" }
-        ]
-      },
-      {
-        dayId: "day-0927",
-        dateMatch: "09-27",
-        pillText: "09/27 D4",
-        dateStr: "09/27 周日",
-        dayTag: "Day 4",
-        routeName: "吉隆坡 ➔ 槟城",
-        nodes: [
-          { time: "上午", desc: "8:30 [小印度十五碑] 早饭/逛街 50min [MTR 南印度餐馆] masala dosa + filter coffee + bonda soup / 1pc podi idli ➔ [国家博物馆] 9:30 60min ➔ [国家清真寺] ➔ 11点抵达 [吉隆坡中央车站]" },
-          { time: "下午", desc: "11:30 - 15:15 火车前往槟城（车上有中饭）➔ 联系 Jack 预定 Kayak（重要）➔ [Butterworth 北海站] 10min walk 轮渡码头 ➔ 15min 到乔治市 ➔ 16:00 入住 ➔ [槟城侨生博物馆] 附近 印度风味两家：[Rempah Ratus]（Mutton Masala）[Bite N Eat] 米其林餐厅 有 chukkumalli coffee ➔ 最好租到摩托车（重要） [STARDUST 1]" }
-        ]
-      },
-      {
-        dayId: "day-0928",
-        dateMatch: "09-28",
-        pillText: "09/28 D5",
-        dateStr: "09/28 周一",
-        dayTag: "Day 5",
-        routeName: "槟城",
-        nodes: [
-          { time: "上午", desc: "6:30 打车去 [升旗山] 或者摩托去 爬升 600m 约 2h（没睡好就小火车上下 15x2=30RM）➔ 公交 40min 回程" },
-          { time: "下午", desc: "摩托车环岛 或 市中心散步酒吧 [Seek Penang]" }
-        ]
-      },
-      {
-        dayId: "day-0929",
-        dateMatch: "09-29",
-        pillText: "09/29 D6",
-        dateStr: "09/29 周二",
-        dayTag: "Day 6",
-        routeName: "槟城",
-        nodes: [
-          { time: "全天休息", desc: "休息日 ➔ 新加坡签证（重要） ➔ [Tan Jetty 姓陈桥]、[娘惹博物馆] 有演出、[七條路爪哇面 伊府面] ➔ 10min walk ➔ [三条路888福建面 虾面] ➔ 15min walk ➔ [檳城潮州珍多冰 煎蕊] ➔ [Pasar Chowrasta Market] ➔ [多春茶室] ➔ 北面沿海：[张弼士故居] ➔ [Esplanade Viewspot] ➔ [槟城市政厅] ➔ [康华丽斯堡]" }
-        ]
-      },
-      {
-        dayId: "day-0930",
-        dateMatch: "09-30",
-        pillText: "09/30 D7",
-        dateStr: "09/30 周三",
-        dayTag: "Day 7",
-        routeName: "槟城 ➔ 兰卡威",
-        nodes: [
-          { time: "全天机动", desc: "09:55 - 10:30 AK6241 飞抵兰卡威 ➔ 入住后先去 [AB Travel] 预定（重要）➔ 14:00 跳岛游 17:00 结束 ➔ 时间多可以去瓜镇（周三正好开门）" }
-        ]
-      },
-      {
-        dayId: "day-1001",
-        dateMatch: "10-01",
-        pillText: "10/01 D8",
-        dateStr: "10/01 周四",
-        dayTag: "Day 8",
-        routeName: "兰卡威",
-        nodes: [
-          { time: "全天机动", desc: "8:00 出发 红树林 Kayak 13:00 回 ➔ 落日巡航（落日和跳岛可互换，根据实际情况）➔ 餐厅备选：[Yasmin Syrian Restaurant] 沙拉 tobbouleh 和 羊肉 kebab" }
-        ]
-      },
-      {
-        dayId: "day-1002",
-        dateMatch: "10-02",
-        pillText: "10/02 D9",
-        dateStr: "10/02 周五",
-        dayTag: "Day 9",
-        routeName: "兰卡威 ➔ 新加坡",
-        nodes: [
-          { time: "上午", desc: "[Bella Restaurant] 早饭 牛肉汤粉 Beef Phat Thai Soup ➔ 10:00 Grab 15min 到机场 ➔ 12:05 起飞" },
-          { time: "下午", desc: "12:05 - 13:40 落地新加坡 ➔ 出关 1h ➔ 火车 ➔ 入住" }
-        ]
-      },
-      {
-        dayId: "day-1003",
-        dateMatch: "10-03",
-        pillText: "10/03 D10",
-        dateStr: "10/03 周六",
-        dayTag: "Day 10",
-        routeName: "新加坡",
-        nodes: [
-          { time: "全天机动", desc: "20min 到 [小印度] ➔ [苏丹回教堂] ➔ [哈芝港] ……" }
-        ]
-      },
-      {
-        dayId: "day-1004",
-        dateMatch: "10-04",
-        pillText: "10/04 D11",
-        dateStr: "10/04 周日",
-        dayTag: "Day 11",
-        routeName: "新加坡",
-        nodes: [
-          { time: "下午", desc: "13:30 [Ocean Restaurant] ➔ [天福宫] ➔ 鱼狮尾 ➔ [牛车水] 礼品 ……" },
-          { time: "晚上", desc: "到机场 ➔ [樟宜机场大瀑布] 22:00 前" }
-        ]
-      },
-      {
-        dayId: "day-1005",
-        dateMatch: "10-05",
-        pillText: "10/05 D12",
-        dateStr: "10/05 周一",
-        dayTag: "Day 12",
-        routeName: "新加坡 ➔ 杭州",
-        nodes: [
-          { time: "凌晨", desc: "02:30 航班回国" }
-        ]
-      }
-    ];
-
-    const checklistData = [
-      "护照", "身份证", "手机", "充电宝", "充电线x2", "转换头","手机防水袋",
-      "信用卡 储蓄卡", "内衣裤 (5)", "袜子 (5)", "短袖/T恤 (3)", "长裤",
-      "薄长裤", "防晒衣", "鞋一双", "彩色外套", "黑短裤", "面巾","手套",  
-      "防晒", "纸巾湿巾", "药品", "伞", "SIM卡", "驱蚊液", "驾驶证和翻译件"
-    ];
+    let transitList = [];
+    let hotelList = [];
+    let planData = [];
+    let checklistData = [];
 
     const collapseState = {};
+    const revealState = { transit: false, hotel: false };
+
+    /* --------------------------------------------------
+       动态拉取 JSON 数据（自动优先读取 SET 设置里的 API）
+    -------------------------------------------------- */
+    async function initFetchData() {
+      const customUrl = localStorage.getItem('user_feishu_api_url');
+      const targetUrl = (customUrl && customUrl.trim()) ? customUrl.trim() : './data.json';
+
+      try {
+        const res = await fetch(targetUrl);
+        if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+        const data = await res.json();
+
+        transitList = data.transitList || [];
+        hotelList = data.hotelList || [];
+        planData = data.planData || [];
+        checklistData = data.checklistData || [];
+
+        // 数据拉取成功后触发页面整体渲染
+        renderChecklist();
+        renderLogPage();
+        renderPlanPage();
+      } catch (err) {
+        console.error('加载行程数据失败:', err);
+      }
+    }
+
+    function saveFeishuApiUrl() {
+      const val = document.getElementById('feishu-api-input').value.trim();
+      if (val) {
+        localStorage.setItem('user_feishu_api_url', val);
+      } else {
+        localStorage.removeItem('user_feishu_api_url');
+      }
+      alert('数据源配置已保存，正在重新同步数据！');
+      initFetchData();
+    }
 
     /* ---------- LOG 页面卡片点击与跳转逻辑 ---------- */
     function openApp(scheme, webUrl) {
@@ -1069,12 +859,61 @@
       renderLogPage();
     }
 
+    function maskSensitive(text) {
+      if (!text) return text;
+      text = text.replace(/\b(MU|AK|CZ|CA|HU|MF|3U|9C|ZH|GS|GX|KN|KY|8L|HO|AQ|EU|BK|TV|PN|JD|NS|FU|GT|DR|SC|9H|UQ|GJ|DZ|Y8|TR|FD|QZ|MH|SQ|CX|GA|PR|VN|TG|JL|NH|KE|OZ|UO|HX|CI|BR|MI|SL|XJ|I5)\s*\d{2,4}\b/g, '航班***');
+      text = text.replace(/车次\s*(EX|ETS|KTM)\s*\d{2,4}\b/g, '车次***');
+      text = text.replace(/\b(EX|ETS|KTM)\s*\d{2,4}\b/g, '车次***');
+      text = text.replace(/座位\s*[:：]?\s*[\w/]+/g, '座位 ***');
+      return text;
+    }
+
+    function maskHotelName(name) {
+      if (!name) return name;
+      const trimmed = name.trim();
+      if (!trimmed) return '****';
+      if (/[\u4e00-\u9fff]/.test(trimmed)) {
+        const tail = trimmed.slice(-2);
+        return '****' + tail;
+      }
+      const words = trimmed.split(/\s+/).filter(Boolean);
+      if (words.length === 0) return '****';
+      const last = words[words.length - 1].replace(/[^\w'-]/g, '');
+      return '****' + (last || '');
+    }
+
+    function maskAddress(addr) {
+      if (!addr) return addr;
+      const parts = addr.split(',').map(s => s.trim()).filter(Boolean);
+      if (parts.length === 0) return '****';
+      const streetRe = /\b(Jalan|Jln|Lebuh|Lorong|St|Street|Road|Rd|Ave|Avenue|Drive|Dr|Lane|Way|Blvd|Highway|Hwy)\b/i;
+      let lastStreetIdx = -1;
+      for (let i = 0; i < parts.length; i++) {
+        if (streetRe.test(parts[i])) {
+          lastStreetIdx = i;
+        }
+      }
+      if (lastStreetIdx === -1) {
+        return '****' + (parts.length > 1 ? ', ' + parts.slice(1).join(', ') : '');
+      }
+      const kept = parts.slice(lastStreetIdx + 1);
+      return '****' + (kept.length ? ', ' + kept.join(', ') : '');
+    }
+
+    function toggleLogReveal(section) {
+      revealState[section] = !revealState[section];
+      renderLogPage();
+    }
+
     function renderLogPage() {
       const transitContainer = document.getElementById('log-transit-container');
       const hotelContainer = document.getElementById('log-hotel-container');
+      if (!transitContainer || !hotelContainer) return;
+      
       const now = new Date();
+      const revealTransit = revealState.transit;
+      const revealHotel = revealState.hotel;
 
-      // 渲染交通卡片
       transitContainer.innerHTML = transitList.map(item => {
         const itemEndDate = new Date(item.endDateStr);
         const isPast = now > itemEndDate;
@@ -1091,6 +930,8 @@
             </div>
           `;
         } else {
+          const subCodeMasked = revealTransit ? item.subCode : maskSensitive(item.subCode);
+          const desc1Masked = revealTransit ? item.desc1 : maskSensitive(item.desc1);
           return `
             <div class="card-item" onclick="openApp('${item.scheme}', '${item.webUrl}')">
               <div class="card-top-bar">
@@ -1102,9 +943,9 @@
                 <span class="card-route-title">${item.title.replace('➔', '<span class="card-route-arrow">➔</span>')}</span>
                 <span class="card-time-orange">${item.time}</span>
               </div>
-              <div class="card-sub-code">${item.subCode}</div>
-              <div class="card-desc-text">${item.desc1}</div>
-              ${item.desc2 ? `<div class="card-desc-text">${item.desc2}</div>` : ''}
+              <div class="card-sub-code">${subCodeMasked}</div>
+              <div class="card-desc-text">${desc1Masked}</div>
+              ${item.desc2 ? `<div class="card-desc-text">${revealTransit ? item.desc2 : maskSensitive(item.desc2)}</div>` : ''}
               ${isPast ? `
                 <div style="text-align: right; margin-top: 8px;">
                   <span style="font-size: 12px; color: #999; text-decoration: underline;" onclick="toggleCardCollapse('${item.id}', event)">折叠行程</span>
@@ -1115,7 +956,6 @@
         }
       }).join('');
 
-      // 渲染住宿卡片
       hotelContainer.innerHTML = hotelList.map(item => {
         const itemEndDate = new Date(item.endDateStr);
         const isPast = now > itemEndDate;
@@ -1132,6 +972,9 @@
             </div>
           `;
         } else {
+          const titleMasked = revealHotel ? item.title : maskHotelName(item.title);
+          const subCodeMasked = revealHotel ? item.subCode : maskHotelName(item.subCode);
+          const descMasked = revealHotel ? item.desc : maskAddress(item.desc);
           return `
             <div class="card-item" onclick="openApp('${item.scheme}', '${item.webUrl}')">
               <div class="card-top-bar">
@@ -1140,11 +983,11 @@
                 <span class="card-date">${item.date}</span>
               </div>
               <div class="card-route-row">
-                <span class="card-route-title">${item.title}</span>
+                <span class="card-route-title">${titleMasked}</span>
                 <span class="card-time-orange">${item.nights}</span>
               </div>
-              <div class="card-sub-code">${item.subCode}</div>
-              <div class="card-desc-text">${item.desc}</div>
+              <div class="card-sub-code">${subCodeMasked}</div>
+              <div class="card-desc-text">${descMasked}</div>
               ${isPast ? `
                 <div style="text-align: right; margin-top: 8px;">
                   <span style="font-size: 12px; color: #999; text-decoration: underline;" onclick="toggleCardCollapse('${item.id}', event)">折叠行程</span>
@@ -1163,7 +1006,6 @@
     }
 
     function formatPlanDesc(desc) {
-      // 替换匹配 [地点] 转换为对应参考图样式的微缩胶囊标签
       return desc.replace(/\[(.*?)\]/g, (match, p1) => {
         return `<span class="map-location-link" onclick="openGoogleMap('${p1}')">${p1}</span>`;
       });
@@ -1172,6 +1014,7 @@
     function renderPlanPage() {
       const pillNav = document.getElementById('pill-nav-container');
       const listContainer = document.getElementById('plan-list-container');
+      if (!pillNav || !listContainer) return;
 
       pillNav.innerHTML = planData.map(d => `
         <div class="date-pill" id="pill-${d.dayId}" onclick="scrollToDay('${d.dayId}')">${d.pillText}</div>
@@ -1199,14 +1042,11 @@
     }
 
     /* ---------- 通用 UI 逻辑 ---------- */
-    const LOCK_WINDOW_MS = 8 * 60 * 60 * 1000; // 8小时免密窗口
-
-    /* ---------- 密码锁：单隐藏输入框驱动 4 格展示 ---------- */
+    const LOCK_WINDOW_MS = 8 * 60 * 60 * 1000;
     const PIN_LENGTH = 4;
     const hiddenPinInput = () => document.getElementById('pin-hidden-input');
     const pinDisplays = () => Array.from(document.querySelectorAll('.pin-display'));
 
-    // 把隐藏框当前值分发到 4 个展示格
     function syncPinDisplay() {
       const val = hiddenPinInput().value.replace(/[^0-9]/g, '').slice(0, PIN_LENGTH);
       hiddenPinInput().value = val;
@@ -1214,12 +1054,10 @@
       return val;
     }
 
-    // 校验密码；返回是否通过
     function checkPin(val) {
       if (val.length < PIN_LENGTH) return false;
-      const savedPass = localStorage.getItem('app_password') || '1234';
+      const savedPass = localStorage.getItem('app_password') || '8880';
       if (val === savedPass) {
-        // 记录本次验证时间，8小时内再次打开免密
         localStorage.setItem('lock_verified_at', Date.now());
         document.getElementById('lock-screen').style.display = 'none';
         return true;
@@ -1232,7 +1070,6 @@
       }
     }
 
-    // 隐藏框输入事件：自动分发 + 满 4 位自动校验
     function handlePinInput() {
       document.getElementById('lock-error').style.visibility = 'hidden';
       const val = syncPinDisplay();
@@ -1241,7 +1078,6 @@
       }
     }
 
-    // 隐藏框退格键：删除最后一个字符并回显
     function handlePinKeydown(e) {
       if (e.key === 'Backspace') {
         const val = hiddenPinInput().value;
@@ -1252,18 +1088,15 @@
       }
     }
 
-    // 点击任意展示格：把焦点还给隐藏框（不重新弹键盘）
     function focusHiddenPin() {
       hiddenPinInput().focus();
     }
 
-    // 显示锁屏时自动聚焦隐藏输入框，弹出数字键盘
     function showLockScreen() {
       document.getElementById('lock-screen').style.display = 'flex';
       setTimeout(() => hiddenPinInput().focus(), 300);
     }
 
-    // 页面加载时检查：8小时内验证过则免密直接进入，否则显示锁屏并自动聚焦数字键盘
     (function initLock() {
       const lastVerified = localStorage.getItem('lock_verified_at');
       let skipLock = false;
@@ -1276,7 +1109,6 @@
       if (skipLock) {
         document.getElementById('lock-screen').style.display = 'none';
       } else {
-        // 绑定隐藏输入框事件
         hiddenPinInput().addEventListener('input', handlePinInput);
         hiddenPinInput().addEventListener('keydown', handlePinKeydown);
         document.querySelectorAll('.pin-display').forEach(box => {
@@ -1345,6 +1177,68 @@
       const total = container.querySelectorAll('.checklist-item').length;
       const checked = container.querySelectorAll('input:checked').length;
       progressEl.innerText = `${checked} / ${total}`;
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklist-container');
+      if (!container) return;
+      container.innerHTML = checklistData.map((item, idx) => `
+        <div class="checklist-item" id="chk-item-${idx}">
+          <input type="checkbox" id="chk-${idx}" onchange="document.getElementById('chk-item-${idx}').classList.toggle('checked', this.checked); updateCheckProgress();">
+          <label for="chk-${idx}">${item}</label>
+        </div>
+      `).join('');
+      updateCheckProgress();
+    }
+
+    function enterChecklistEdit() {
+      const editList = document.getElementById('checklist-edit-list');
+      editList.innerHTML = checklistData.map((item, idx) => `
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="text" class="num-input" id="checklist-edit-input-${idx}" value="${item.replace(/"/g, '&quot;')}" style="flex: 1; min-width: 0; height: 40px;">
+          <button class="checklist-del-btn" onclick="removeChecklistItem(${idx})" title="删除此项">x</button>
+        </div>
+      `).join('');
+      document.getElementById('checklist-container').style.display = 'none';
+      document.getElementById('checklist-edit-panel').style.display = 'block';
+      document.getElementById('checklist-edit-btn').style.display = 'none';
+    }
+
+    function addChecklistItem() {
+      const input = document.getElementById('checklist-new-item');
+      const val = input.value.trim();
+      if (!val) return;
+      checklistData.push(val);
+      input.value = '';
+      enterChecklistEdit();
+    }
+
+    function removeChecklistItem(idx) {
+      if (idx >= 0 && idx < checklistData.length) {
+        checklistData.splice(idx, 1);
+      }
+      enterChecklistEdit();
+    }
+
+    function saveChecklistEdit() {
+      const inputs = document.querySelectorAll('#checklist-edit-list input[type="text"]');
+      const newList = [];
+      inputs.forEach(input => {
+        const val = input.value.trim();
+        if (val) newList.push(val);
+      });
+      checklistData = newList;
+      document.getElementById('checklist-container').style.display = '';
+      document.getElementById('checklist-edit-panel').style.display = 'none';
+      document.getElementById('checklist-edit-btn').style.display = '';
+      renderChecklist();
+    }
+
+    function cancelChecklistEdit() {
+      document.getElementById('checklist-container').style.display = '';
+      document.getElementById('checklist-edit-panel').style.display = 'none';
+      document.getElementById('checklist-edit-btn').style.display = '';
+      renderChecklist();
     }
 
     function convertCurrency() {
@@ -1426,23 +1320,23 @@
       if (!targetDay) {
         targetDay = planData[0];
       }
-      scrollToDay(targetDay.dayId);
+      if (targetDay) {
+        scrollToDay(targetDay.dayId);
+      }
     }
 
     window.onload = function() {
       startTravelTimer();
       loadMemo();
 
-      document.getElementById('checklist-container').innerHTML = checklistData.map((item, idx) => `
-        <div class="checklist-item" id="chk-item-${idx}">
-          <input type="checkbox" id="chk-${idx}" onchange="document.getElementById('chk-item-${idx}').classList.toggle('checked', this.checked); updateCheckProgress();">
-          <label for="chk-${idx}">${item}</label>
-        </div>
-      `).join('');
-      updateCheckProgress(); // 初始计数自动填充，增删清单无需手动改
+      // 回显已设置的 API URL
+      const savedApi = localStorage.getItem('user_feishu_api_url');
+      if (savedApi) {
+        document.getElementById('feishu-api-input').value = savedApi;
+      }
 
-      renderLogPage();
-      renderPlanPage();
+      // 拉取 JSON 数据
+      initFetchData();
     };
   </script>
 </body>
