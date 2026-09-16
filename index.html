@@ -614,18 +614,12 @@
       border: none;
       font-weight: 700;
     }
-    .plan-edit-row {
-      background: var(--pure-white);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid var(--border-color);
-    }
-    .plan-edit-row label {
-      font-size: 12px;
+
+    .edit-label-title {
+      font-size: 13px;
       font-weight: 700;
       color: var(--primary-green);
-      display: block;
+      margin-top: 12px;
       margin-bottom: 4px;
     }
   </style>
@@ -740,21 +734,6 @@
       <span class="section-title-sub">/ Memo</span>
     </div>
 
-    <!-- 新增：行程计划 UI 编辑区 -->
-    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-plan-edit')">
-      <span>行程计划修改（本地保存）</span>
-    </div>
-    <div id="memo-plan-edit" class="collapse-content memo-collapse-content open">
-      <div style="font-size: 13px; color: #666; margin-bottom: 10px;">选择需要修改的日期：</div>
-      <select id="plan-edit-day-select" class="num-input" style="margin-bottom: 12px;" onchange="renderPlanEditForm()">
-      </select>
-      <div id="plan-edit-form"></div>
-      <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: space-between;">
-        <button class="memo-btn" style="color: var(--red-error);" onclick="resetPlanData()">恢复默认行程</button>
-        <button class="memo-btn memo-btn-primary" style="width: 120px;" onclick="savePlanDataEdit()">保存修改</button>
-      </div>
-    </div>
-
     <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-calc')">
       <span>汇率换算</span>
     </div>
@@ -806,6 +785,27 @@
         <button class="set-fixed-btn" style="background: var(--accent-orange); color:#fff; border:none; border-radius: 10px; font-weight: 700; height: 44px;" onclick="updatePassword()">保存</button>
       </div>
     </div>
+
+    <!-- 简化版：行程计划修改面板放到最后 -->
+    <div class="collapse-header memo-collapse-header" onclick="toggleMemoSection('memo-plan-edit')">
+      <span>修改行程</span>
+    </div>
+    <div id="memo-plan-edit" class="collapse-content memo-collapse-content">
+      <div style="font-size: 12px; color: #888; line-height: 1.5; margin-bottom: 12px;">
+        支持[地点]地图标注。此处修改为缓存数据，修改后请勿清扫浏览器。无痕浏览修改无效。
+      </div>
+
+      <div style="font-size: 13px; font-weight: 700; color: var(--primary-green); margin-bottom: 4px;">选择日期</div>
+      <select id="plan-edit-day-select" class="num-input" style="margin-bottom: 8px;" onchange="renderPlanEditForm()">
+      </select>
+
+      <div id="plan-edit-form"></div>
+
+      <div style="display: flex; gap: 8px; margin-top: 16px; justify-content: space-between;">
+        <button class="memo-btn" style="color: var(--red-error);" onclick="resetPlanData()">恢复默认行程</button>
+        <button class="memo-btn memo-btn-primary" style="width: 120px;" onclick="savePlanDataEdit()">保存修改</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -818,35 +818,335 @@
     const revealState = { transit: false, hotel: false };
 
     /* --------------------------------------------------
-       数据加载逻辑：优先从 localStorage 提取修改后的 planData
+       数据加载逻辑：优先 fetch data.json，失败降级到内嵌默认数据
     -------------------------------------------------- */
+
+    const fallbackData = {
+      transitList: [
+        {
+          id: "transit-1",
+          endDateStr: "2026-09-24T14:20:00",
+          tag: "机票",
+          platform: "携程",
+          date: "09/24 周四",
+          title: "杭州 ➔ 吉隆坡",
+          collapsedTitle: "杭州 ➔ 吉隆坡",
+          time: "08:50 - 14:20",
+          subCode: "HGH T4 - KUL T1",
+          desc1: "东方航空 MU5095 | 5h30m",
+          desc2: "经济舱 空客320(中) | 含早餐",
+          scheme: "ctrip://wireless/InlandFlight",
+          webUrl: "https://m.ctrip.com/html5/flight/swift/index"
+        },
+        {
+          id: "transit-2",
+          endDateStr: "2026-09-27T15:15:00",
+          tag: "火车",
+          platform: "KTM",
+          date: "09/27 周日",
+          title: "吉隆坡 ➔ 槟城",
+          collapsedTitle: "吉隆坡 ➔ 槟城",
+          time: "11:40 - 15:15",
+          subCode: "KL Sentral - Butterworth",
+          desc1: "车次 EX9108 | 座位 A/A2",
+          scheme: "ktm://",
+          webUrl: "https://online.ktmb.com.my/"
+        },
+        {
+          id: "transit-3",
+          endDateStr: "2026-09-30T10:30:00",
+          tag: "机票",
+          platform: "飞猪",
+          date: "09/30 周三",
+          title: "槟城 ➔ 兰卡威",
+          collapsedTitle: "槟城 ➔ 兰卡威",
+          time: "09:55 - 10:30",
+          subCode: "PEN Terminal D - LGK MAIN",
+          desc1: "亚航 AK6241 | 约 35 分钟",
+          scheme: "fliggy://",
+          webUrl: "https://www.fliggy.com/"
+        },
+        {
+          id: "transit-4",
+          endDateStr: "2026-10-02T13:40:00",
+          tag: "机票",
+          platform: "去哪儿",
+          date: "10/02 周五",
+          title: "兰卡威 ➔ 新加坡",
+          collapsedTitle: "兰卡威 ➔ 新加坡",
+          time: "12:05 - 13:40",
+          subCode: "LGK Airport - SIN Terminal 4",
+          desc1: "亚航 AK728 | 预订编码: F92Q4F",
+          scheme: "qunarphone://",
+          webUrl: "https://m.qunar.com/"
+        },
+        {
+          id: "transit-5",
+          endDateStr: "2026-10-05T02:30:00",
+          tag: "机票",
+          platform: "携程",
+          date: "10/05 周一 (返程)",
+          title: "新加坡 ➔ 杭州",
+          collapsedTitle: "新加坡 ➔ 杭州",
+          time: "02:30 - 11:00",
+          subCode: "SIN T3 - HGH T3",
+          desc1: "东方航空 MU9648 / MU5883 中转昆明",
+          scheme: "ctrip://wireless/InlandFlight",
+          webUrl: "https://m.ctrip.com/html5/flight/swift/index"
+        }
+      ],
+      hotelList: [
+        {
+          id: "hotel-1",
+          endDateStr: "2026-09-25T12:00:00",
+          tag: "马六甲",
+          platform: "Booking",
+          date: "9/24",
+          title: "霍尔马克休闲酒店",
+          collapsedTitle: "马六甲 1晚",
+          nights: "1晚",
+          subCode: "Hallmark Leisure Hotel",
+          desc: "68, Jalan Portugis, Hotel Hall Mark, Off, Jalan Kubu, Kampung Satu, 75200 Melaka, Malaysia",
+          scheme: "booking://",
+          webUrl: "https://www.booking.com/"
+        },
+        {
+          id: "hotel-2",
+          endDateStr: "2026-09-27T12:00:00",
+          tag: "吉隆坡",
+          platform: "Booking",
+          date: "9/25, 9/26",
+          title: "美苏伊武吉免登酒店",
+          collapsedTitle: "吉隆坡 2晚",
+          nights: "2晚",
+          subCode: "The Mesui Hotel Bukit Bintang",
+          desc: "9, Jln Mesui, Bukit Bintang, 50200 Kuala Lumpur, Wilayah Persekutuan Kuala Lumpur, Malaysia",
+          scheme: "booking://",
+          webUrl: "https://www.booking.com/"
+        },
+        {
+          id: "hotel-3",
+          endDateStr: "2026-09-30T12:00:00",
+          tag: "槟城",
+          platform: "Booking",
+          date: "9/27, 9/28, 9/29",
+          title: "麦蒙庄园传统酒店",
+          collapsedTitle: "槟城 3晚",
+          nights: "3晚",
+          subCode: "Melmond Maison Heritage Hotel",
+          desc: "59, Lebuh Melayu, George Town, 10100 George Town, Pulau Pinang, Malaysia",
+          scheme: "booking://",
+          webUrl: "https://www.booking.com/"
+        },
+        {
+          id: "hotel-4",
+          endDateStr: "2026-10-02T12:00:00",
+          tag: "兰卡威",
+          platform: "Airbnb",
+          date: "9/30, 10/1",
+          title: "兰卡威客用小屋",
+          collapsedTitle: "兰卡威 2晚",
+          nights: "2晚",
+          subCode: "Liv Bumi Oasis (Guest House)",
+          desc: "No 1, Lot 1565, Lorong Surau No 1, Lot 1565, 07000 Langkawi, Kedah, Malaysia",
+          scheme: "booking://",
+          webUrl: "https://www.booking.com/"
+        },
+        {
+          id: "hotel-5",
+          endDateStr: "2026-10-04T12:00:00",
+          tag: "新加坡",
+          platform: "Booking",
+          date: "10/2, 10/3",
+          title: "KINN Habitat",
+          collapsedTitle: "新加坡 2晚",
+          nights: "2晚",
+          subCode: "KINN Habitat",
+          desc: "5 Hongkong St, Singapore 059648",
+          scheme: "airbnb://",
+          webUrl: "https://www.airbnb.com/"
+        }
+      ],
+      planData: [
+        {
+          "dayId": "day-0924",
+          "dateMatch": "09-24",
+          "pillText": "09/24 D1",
+          "dateStr": "09/24 周四",
+          "dayTag": "Day 1",
+          "routeName": "杭州 ➔ 吉隆坡 ➔ 马六甲",
+          "nodes": [
+            { "time": "上午", "desc": "4:30 起床 ➔ 5:00 出发 ➔ 5:40 到公司打车 ➔ 6:30 到机场 ➔ 飞猪在线选座（去兰卡威的航班）➔ 08:50 - 14:20 MU5095 飞往吉隆坡" },
+            { "time": "下午", "desc": "14:20 落地 ➔ 出关后买大巴票（现场 / [redbus] / [easybook]，可提前查看时间表）➔ 15:30/16:00 - 18:00 大巴到马六甲 (2h+)" },
+            { "time": "晚上", "desc": "入住 吃饭 ➔ [马六甲海峡清真寺] 晚霞（来不及就第二天一早去）➔ [马来西亚十三州咖啡] 8点前 / [The Daily Fix Cafe] 8:30前 ➔ 夜游 [马六甲河] ➔ 寻找 Golden 三轮 ➔ WhatsApp 搞好" }
+          ]
+        },
+        {
+          "dayId": "day-0925",
+          "dateMatch": "09-25",
+          "pillText": "09/25 D2",
+          "dateStr": "09/25 周五",
+          "dayTag": "Day 2",
+          "routeName": "马六甲 ➔ 吉隆坡",
+          "nodes": [
+            { "time": "上午", "desc": "早茶 / babakaya 早饭 ➔ [马六甲海峡清真寺]（昨日未去则今早）➔ [荷兰红屋] 等 ➔ [鸡场街] ➔ [Kopi Harian] / [Calanthe Art Cafe] 午饭 ➔ 前往吉隆坡" },
+            { "time": "下午", "desc": "入住 [美苏伊武吉免登酒店] ➔ [城中城公园] ➔ [双子塔] / [Oriental Kopi 板面] / [NZ 咖喱屋] / [Alva KL] 空中赏塔 软壳蟹 ➔ [亚罗美食街]：TG's Bistro 打卡 Ella 同款 Roti Canai 印度甩饼、Murtabak 印式肉饼、红毛榴莲汁 Soursop、竹蔗茅根水 ➔ [娘惹丽色] 博威广场 开到10点" }
+          ]
+        },
+        {
+          "dayId": "day-0926",
+          "dateMatch": "09-26",
+          "pillText": "09/26 D3",
+          "dateStr": "09/26 周六",
+          "dayTag": "Day 3",
+          "routeName": "吉隆坡",
+          "nodes": [
+            { "time": "上午", "desc": "7点出发 [何九茶店] 7:30 早饭 咖喱肠粉 海南茶 生熟蛋烤面包（起不来就下午吃）➔ [黑风洞] 回程火车10点 / 公交 9:15、9:45 ➔ [独立广场] ➔ [Bartolo 葡萄牙蛋挞] ➔ [中央艺术坊] ➔ [茨厂街] 午饭 [金莲记福建面]" },
+            { "time": "下午", "desc": "[植物园] 1h（太热不去）➔ [国家天文馆] ➔ [警察博物馆] ➔ [伊斯兰艺术博物馆] ➔ [斯里玛哈马廉曼兴都庙] / [REXKL 书店] / [Dury Dury 鬼仔巷] / [陈氏书院]" }
+          ]
+        },
+        {
+          "dayId": "day-0927",
+          "dateMatch": "09-27",
+          "pillText": "09/27 D4",
+          "dateStr": "09/27 周日",
+          "dayTag": "Day 4",
+          "routeName": "吉隆坡 ➔ 槟城",
+          "nodes": [
+            { "time": "上午", "desc": "8:30 [小印度十五碑] 早饭/逛街 50min [MTR 南印度餐馆] masala dosa + filter coffee + bonda soup / 1pc podi idli ➔ [国家博物馆] 9:30 60min ➔ [国家清真寺] ➔ 11点抵达 [吉隆坡中央车站]" },
+            { "time": "下午", "desc": "11:30 - 15:15 火车前往槟城（车上有中饭）➔ 联系 Jack 预定 Kayak（重要）➔ [Butterworth 北海站] 10min walk 轮渡码头 ➔ 15min 到乔治市 ➔ 16:00 入住 ➔ [槟城侨生博物馆] 附近 印度风味两家：[Rempah Ratus]（Mutton Masala）[Bite N Eat] 米其林餐厅 有 chukkumalli coffee ➔ 最好租到摩托车（重要） [STARDUST 1]" }
+          ]
+        },
+        {
+          "dayId": "day-0928",
+          "dateMatch": "09-28",
+          "pillText": "09/28 D5",
+          "dateStr": "09/28 周一",
+          "dayTag": "Day 5",
+          "routeName": "槟城",
+          "nodes": [
+            { "time": "上午", "desc": "6:30 打车去 [升旗山] 或者摩托去 爬升 600m 约 2h（没睡好就小火车上下 15x2=30RM）➔ 公交 40min 回程" },
+            { "time": "下午", "desc": "摩托车环岛 或 市中心散步酒吧 [Seek Penang]" }
+          ]
+        },
+        {
+          "dayId": "day-0929",
+          "dateMatch": "09-29",
+          "pillText": "09/29 D6",
+          "dateStr": "09/29 周二",
+          "dayTag": "Day 6",
+          "routeName": "槟城",
+          "nodes": [
+            { "time": "全天休息", "desc": "休息日 ➔ 新加坡签证（重要） ➔ [Tan Jetty 姓陈桥]、[娘惹博物馆] 有演出、[七條路爪哇面 伊府面] ➔ 10min walk ➔ [三条路888福建面 虾面] ➔ 15min walk ➔ [檳城潮州珍多冰 煎蕊] ➔ [Pasar Chowrasta Market] ➔ [多春茶室] ➔ 北面沿海：[张弼士故居] ➔ [Esplanade Viewspot] ➔ [槟城市政厅] ➔ [康华丽斯堡]" }
+          ]
+        },
+        {
+          "dayId": "day-0930",
+          "dateMatch": "09-30",
+          "pillText": "09/30 D7",
+          "dateStr": "09/30 周三",
+          "dayTag": "Day 7",
+          "routeName": "槟城 ➔ 兰卡威",
+          "nodes": [
+            { "time": "全天机动", "desc": "09:55 - 10:30 AK6241 飞抵兰卡威 ➔ 入住后先去 [AB Travel] 预定（重要）➔ 14:00 跳岛游 17:00 结束 ➔ 时间多可以去瓜镇（周三正好开门）" }
+          ]
+        },
+        {
+          "dayId": "day-1001",
+          "dateMatch": "10-01",
+          "pillText": "10/01 D8",
+          "dateStr": "10/01 周四",
+          "dayTag": "Day 8",
+          "routeName": "兰卡威",
+          "nodes": [
+            { "time": "全天机动", "desc": "8:00 出发 红树林 Kayak 13:00 回 ➔ 落日巡航（落日和跳岛可互换，根据实际情况）➔ 餐厅备选：[Yasmin Syrian Restaurant] 沙拉 tobbouleh 和 羊肉 kebab" }
+          ]
+        },
+        {
+          "dayId": "day-1002",
+          "dateMatch": "10-02",
+          "pillText": "10/02 D9",
+          "dateStr": "10/02 周五",
+          "dayTag": "Day 9",
+          "routeName": "兰卡威 ➔ 新加坡",
+          "nodes": [
+            { "time": "上午", "desc": "[Bella Restaurant] 早饭 牛肉汤粉 Beef Phat Thai Soup ➔ 10:00 Grab 15min 到机场 ➔ 12:05 起飞" },
+            { "time": "下午", "desc": "12:05 - 13:40 落地新加坡 ➔ 出关 1h ➔ 火车 ➔ 入住" }
+          ]
+        },
+        {
+          "dayId": "day-1003",
+          "dateMatch": "10-03",
+          "pillText": "10/03 D10",
+          "dateStr": "10/03 周六",
+          "dayTag": "Day 10",
+          "routeName": "新加坡",
+          "nodes": [
+            { "time": "全天机动", "desc": "20min 到 [小印度] ➔ [苏丹回教堂] ➔ [哈芝港] ……" }
+          ]
+        },
+        {
+          "dayId": "day-1004",
+          "dateMatch": "10-04",
+          "pillText": "10/04 D11",
+          "dateStr": "10/04 周日",
+          "dayTag": "Day 11",
+          "routeName": "新加坡",
+          "nodes": [
+            { "time": "下午", "desc": "13:30 [Ocean Restaurant] ➔ [天福宫] ➔ 鱼狮尾 ➔ [牛车水] 礼品 ……" },
+            { "time": "晚上", "desc": "到机场 ➔ [樟宜机场大瀑布] 22:00 前" }
+          ]
+        },
+        {
+          "dayId": "day-1005",
+          "dateMatch": "10-05",
+          "pillText": "10/05 D12",
+          "dateStr": "10/05 周一",
+          "dayTag": "Day 12",
+          "routeName": "新加坡 ➔ 杭州",
+          "nodes": [
+            { "time": "凌晨", "desc": "02:30 航班回国" }
+          ]
+        }
+      ],
+      checklistData: [
+        "护照", "身份证", "手机", "充电宝", "充电线x2", "转换头", "手机防水袋",
+        "信用卡 储蓄卡", "内衣裤 (5)", "袜子 (5)", "短袖/T恤 (3)", "长裤",
+        "薄长裤", "防晒衣", "鞋一双", "彩色外套", "黑短裤", "面巾", "手套",  
+        "防晒", "纸巾湿巾", "药品", "伞", "SIM卡", "驱蚊液", "驾驶证和翻译件"
+      ]
+    };
+
     async function initFetchData() {
       try {
         const res = await fetch('./data.json');
         if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
         const defaultData = await res.json();
-
-        transitList = defaultData.transitList || [];
-        hotelList = defaultData.hotelList || [];
-        
-        // 优先获取本地缓存的行程与清单，实现纯前端随时修改
-        const savedPlan = localStorage.getItem('user_custom_plan_data');
-        planData = savedPlan ? JSON.parse(savedPlan) : (defaultData.planData || []);
-
-        const savedChecklist = localStorage.getItem('user_custom_checklist');
-        checklistData = savedChecklist ? JSON.parse(savedChecklist) : (defaultData.checklistData || []);
-
-        renderChecklist();
-        renderLogPage();
-        renderPlanPage();
-        initPlanEditDropdown();
+        loadDataIntoApp(defaultData);
       } catch (err) {
-        console.error('加载行程数据失败:', err);
+        console.warn('本地 fetch 数据受限 (file://)，已自动降级加载默认数据:', err);
+        loadDataIntoApp(fallbackData);
       }
     }
 
+    function loadDataIntoApp(defaultData) {
+      transitList = defaultData.transitList || [];
+      hotelList = defaultData.hotelList || [];
+
+      const savedPlan = localStorage.getItem('user_custom_plan_data');
+      planData = savedPlan ? JSON.parse(savedPlan) : (defaultData.planData || []);
+
+      const savedChecklist = localStorage.getItem('user_custom_checklist');
+      checklistData = savedChecklist ? JSON.parse(savedChecklist) : (defaultData.checklistData || []);
+
+      renderChecklist();
+      renderLogPage();
+      renderPlanPage();
+      initPlanEditDropdown();
+    }
+
     /* --------------------------------------------------
-       行程编辑（SET页面交互逻辑）
+       行程编辑（SET页面简化逻辑：修复切换下拉联动刷新）
     -------------------------------------------------- */
     function initPlanEditDropdown() {
       const select = document.getElementById('plan-edit-day-select');
@@ -862,27 +1162,24 @@
       const form = document.getElementById('plan-edit-form');
       if (!select || !form) return;
       
-      const idx = select.value;
+      const idx = parseInt(select.value, 10);
       const day = planData[idx];
       if (!day) return;
 
       let html = `
-        <div class="plan-edit-row">
-          <label>路线名称</label>
-          <input type="text" id="edit-route-name" class="num-input" value="${day.routeName.replace(/"/g, '&quot;')}">
-        </div>
+        <div class="edit-label-title">路线名称</div>
+        <input type="text" id="edit-route-name" class="num-input" value="${(day.routeName || '').replace(/"/g, '&quot;')}">
       `;
 
-      day.nodes.forEach((node, nIdx) => {
+      for (let i = 0; i < 3; i++) {
+        const node = day.nodes[i] || { time: '', desc: '' };
         html += `
-          <div class="plan-edit-row">
-            <label>节点 ${nIdx + 1} 时间</label>
-            <input type="text" id="edit-node-time-${nIdx}" class="num-input" value="${node.time.replace(/"/g, '&quot;')}" style="margin-bottom:6px;">
-            <label>节点 ${nIdx + 1} 描述 (支持 [地点] 地图标注)</label>
-            <textarea id="edit-node-desc-${nIdx}" class="num-input" style="height:60px; padding-top:6px;">${node.desc}</textarea>
-          </div>
+          <div class="edit-label-title">节点 ${i + 1}</div>
+          <input type="text" id="edit-node-time-${i}" class="num-input" placeholder="时间（如：上午 / 14:00）" value="${(node.time || '').replace(/"/g, '&quot;')}" style="margin-bottom: 6px;">
+          <div class="edit-label-title" style="margin-top: 0;">行程内容 ${i + 1}</div>
+          <textarea id="edit-node-desc-${i}" class="num-input" placeholder="输入节点行程..." style="height: 60px; padding-top: 8px;">${node.desc || ''}</textarea>
         `;
-      });
+      }
 
       form.innerHTML = html;
     }
@@ -890,17 +1187,27 @@
     function savePlanDataEdit() {
       const select = document.getElementById('plan-edit-day-select');
       if (!select) return;
-      const idx = select.value;
+      const idx = parseInt(select.value, 10);
 
       planData[idx].routeName = document.getElementById('edit-route-name').value;
-      planData[idx].nodes.forEach((node, nIdx) => {
-        node.time = document.getElementById(`edit-node-time-${nIdx}`).value;
-        node.desc = document.getElementById(`edit-node-desc-${nIdx}`).value;
-      });
+      
+      const updatedNodes = [];
+      for (let i = 0; i < 3; i++) {
+        const timeVal = document.getElementById(`edit-node-time-${i}`).value.trim();
+        const descVal = document.getElementById(`edit-node-desc-${i}`).value.trim();
+        if (timeVal || descVal) {
+          updatedNodes.push({
+            time: timeVal,
+            desc: descVal
+          });
+        }
+      }
 
-      // 存入缓存
+      planData[idx].nodes = updatedNodes;
+
       localStorage.setItem('user_custom_plan_data', JSON.stringify(planData));
       renderPlanPage();
+      initPlanEditDropdown();
       alert('行程修改成功！已保存在本地缓存中。');
     }
 
