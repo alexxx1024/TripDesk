@@ -1,17 +1,38 @@
-# ✈️ TripDesk
+# 🌴 TripDesk - 轻量级旅行随身指南
 
-> **Your all-in-one travel control center.**  
-> A lightweight, reusable personal OS built to streamline your journeys—from pre-trip packing lists and flight/hotel logs to day-by-day itineraries and real-time utilities. One fixed architecture, endless destinations.
+TripDesk 是一款专为手机端打造的轻量级旅行随身网页 App。纯前端运行、开箱即用，支持密码锁、动态行程编辑、清单管理与地图导航。
 
 ---
 
-## 📌 Architecture
+## 📌 四大核心页面
 
-TripDesk 采用模块化设计的固定架构。每次开启新旅程时，可使用任意agent直接替换您的旅行信息，或手动修改代码。需要一张poster.png插图。如有需要，可以按照喜好修改 UI 配色，除此之外，您无需重构任何视图。
+* **PRE (行前)**：倒计时 / 爽玩计时器、路线海报展示、交互式行前清单 (Check List)。
+* **LOG (交通与住宿)**：机票/火车/酒店预订信息卡片，支持调起 App、脱敏防偷窥与一键折叠。
+* **PLAN (行程安排)**：按日期切天查看每日日程，点击 `[地点]` 可直接调起 Google 地图导航。
+* **SET (杂项与设置)**：汇率换算、备忘录、密码修改、本地行程编辑面板。
 
-```text
-TripDesk/
-├── 🧳 Pre   # 行前准备、清单管理
-├── 🎫 Log   # 机酒预订、关键凭证
-├── 🗺️ Plan  # 逐日行程、路线规划
-└── 📝 Memo  # 汇率换算、备忘设置
+---
+
+## 🛠️ 快速配置与使用
+
+### 1. 更换首页海报
+准备一张路线图命名为 `poster.png`，替换根目录下的原图即可。
+
+### 2. 修改行程与数据（二选一）
+
+* **方法 A：直接修改文件**
+  修改根目录下的 `data.json`。行程内容中写 `[地点名称]`（如 `[双子塔]`）会自动生成谷歌地图导航链接。
+  快捷技巧：可以把自己的行程文件和 `data.json` 丢给 AI/agent，让它修改json文件。*
+* **方法 B：手机端直接编辑**
+  在 **SET (杂项)** 页面点击 **【修改行程】**，选择日期即可实时修改。
+  此修改仅保存在本地浏览器缓存中，请勿清除缓存。
+
+---
+
+## 🚀 预览与部署
+
+* **本地预览**：双击 `index.html` 即可直接打开预览（受浏览器限制，本地打开时会自动加载内置示例数据）。
+* **线上部署**：将项目推送到 GitHub，开启 **GitHub Pages** 即可获得专属链接。
+* **手机体验**：用手机浏览器打开链接，选择 **“添加到主屏幕”** 即可当作原生 App 使用。
+
+> 🔒 **默认开屏密码**：`8880`（可在 SET 页面自行修改）
